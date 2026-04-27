@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POWERGYM — Mi Panel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --black: #0a0a0a;
+            --white: #f5f5f0;
+            --gray: #1a1a1a;
+            --gray2: #2a2a2a;
+            --gray3: #333;
+            --accent: #ff2020;
+            --red: #ff2d2d;
+            --green: #00e676;
+            --text-muted: #888;
+            --sidebar: 240px;
+        }
+        html, body { height: 100%; overflow: hidden; }
+        body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; display: flex; }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: var(--sidebar);
+            height: 100vh;
+            background: var(--gray);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0; top: 0;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            z-index: 100;
+        }
+        .sidebar-logo {
+            padding: 28px 24px 16px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.6rem;
+            letter-spacing: 3px;
+            text-decoration: none;
+            color: var(--white);
+            display: block;
+        }
+        .sidebar-logo span { color: var(--accent); }
+        .sidebar-role {
+            padding: 0 24px 18px;
+            font-size: 0.6rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 8px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 24px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            transition: color 0.2s, background 0.2s;
+            position: relative;
+        }
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 0;
+            background: var(--accent);
+            transition: width 0.2s;
+        }
+        .nav-item:hover { color: var(--white); background: rgba(255,255,255,0.03); }
+        .nav-item.active { color: var(--accent); }
+        .nav-item.active::before { width: 3px; }
+        .nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 20px 24px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .user-avatar {
+            width: 36px; height: 36px;
+            background: var(--accent);
+            color: var(--black);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .user-name { font-size: 0.8rem; font-weight: 600; }
+        .user-email { font-size: 0.68rem; color: var(--text-muted); }
+        .btn-logout {
+            width: 100%;
+            background: rgba(255,45,45,0.1);
+            border: 1px solid rgba(255,45,45,0.2);
+            color: var(--red);
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-logout:hover { background: rgba(255,45,45,0.2); }
+
+        /* MAIN */
+        .main {
+            margin-left: var(--sidebar);
+            width: calc(100% - var(--sidebar));
+            height: 100vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .main::-webkit-scrollbar { width: 4px; }
+        .main::-webkit-scrollbar-thumb { background: var(--gray2); }
+
+        .topbar {
+            padding: 20px 36px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--black);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .page-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; }
+        .topbar-date { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; }
+
+        .content { padding: 32px 36px; flex: 1; }
+
+        /* WELCOME BANNER */
+        .welcome-banner {
+            background: var(--accent);
+            padding: 32px 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .welcome-banner::before {
+            content: 'POWERGYM';
+            position: absolute;
+            right: -20px; top: -10px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 6rem;
+            color: rgba(0,0,0,0.06);
+            letter-spacing: 4px;
+            pointer-events: none;
+        }
+        .welcome-text h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--black);
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+        .welcome-text p { font-size: 0.85rem; color: rgba(0,0,0,0.6); font-weight: 300; }
+        .welcome-btn {
+            background: var(--black);
+            color: var(--accent);
+            border: none;
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 14px 28px;
+            cursor: pointer;
+            clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .welcome-btn:hover { background: var(--gray2); }
+
+        /* STATS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--gray);
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%; height: 2px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s;
+        }
+        .stat-card:hover::after { transform: scaleX(1); }
+        .stat-icon-bg { position: absolute; top: 16px; right: 16px; font-size: 1.8rem; opacity: 0.12; }
+        .stat-label { font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+        .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; line-height: 1; }
+        .stat-value span { color: var(--accent); }
+        .stat-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; font-weight: 300; }
+
+        /* MEMBRESIA CARD */
+        .membresia-card {
+            background: var(--gray);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 28px 32px;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+        .membresia-icon { font-size: 2.5rem; flex-shrink: 0; }
+        .membresia-info { flex: 1; }
+        .membresia-plan {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.6rem;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+        }
+        .membresia-dates { font-size: 0.78rem; color: var(--text-muted); font-weight: 300; margin-bottom: 14px; }
+        .progress-bar-wrap { background: var(--gray2); height: 4px; border-radius: 2px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.8s ease; }
+        .membresia-right { text-align: right; flex-shrink: 0; }
+        .dias-restantes {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            color: var(--accent);
+            line-height: 1;
+        }
+        .dias-label { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
+
+        /* DOS COLUMNAS */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+
+        /* SECTION HEADER */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .section-title-sm {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+        }
+
+        /* TABLA */
+        .table-wrap {
+            background: var(--gray);
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { border-bottom: 1px solid rgba(255,255,255,0.08); }
+        th { text-align: left; font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); padding: 12px 18px; font-weight: 600; }
+        td { padding: 12px 18px; font-size: 0.82rem; font-weight: 300; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+        .badge { display: inline-block; font-size: 0.6rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; }
+        .badge-active { background: rgba(0,230,118,0.12); color: var(--green); }
+        .badge-vencida { background: rgba(255,45,45,0.12); color: var(--red); }
+        .badge-pendiente { background: rgba(232,255,0,0.12); color: var(--accent); }
+        .badge-inscrito { background: rgba(100,160,255,0.12); color: #64a0ff; }
+
+        /* PLANES GRID */
+        .planes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .plan-card {
+            background: var(--gray);
+            border: 1px solid rgba(255,255,255,0.07);
+            padding: 28px 24px;
+            position: relative;
+            transition: border-color 0.3s, transform 0.3s;
+            cursor: pointer;
+        }
+        .plan-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+        .plan-card.featured { background: var(--accent); color: var(--black); border-color: var(--accent); }
+        .plan-badge { position: absolute; top: -1px; right: 20px; background: var(--red); color: var(--white); font-size: 0.58rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 5px 12px; }
+        .plan-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 2px; margin-bottom: 4px; }
+        .plan-dur { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; }
+        .plan-card.featured .plan-dur { color: rgba(0,0,0,0.5); }
+        .plan-price { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; line-height: 1; margin-bottom: 4px; }
+        .plan-cop { font-size: 0.65rem; color: var(--text-muted); margin-bottom: 20px; }
+        .plan-card.featured .plan-cop { color: rgba(0,0,0,0.5); }
+        .plan-features { list-style: none; margin-bottom: 20px; }
+        .plan-features li { font-size: 0.8rem; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; gap: 8px; font-weight: 300; line-height: 1.4; }
+        .plan-card.featured .plan-features li { border-bottom-color: rgba(0,0,0,0.1); }
+        .plan-features li::before { content: '→'; color: var(--accent); font-size: 0.75rem; flex-shrink: 0; margin-top: 2px; }
+        .plan-card.featured .plan-features li::before { color: var(--black); }
+        .btn-plan {
+            display: block; text-align: center; padding: 12px;
+            font-family: 'Barlow', sans-serif; font-size: 0.72rem; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase;
+            border: 1px solid rgba(255,255,255,0.2); color: var(--white);
+            background: none; cursor: pointer; transition: all 0.2s; width: 100%;
+        }
+        .btn-plan:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-plan.solid { background: var(--black); color: var(--accent); border-color: var(--black); }
+        .btn-plan.solid:hover { background: var(--gray2); }
+
+        /* CLASES */
+        .clase-card {
+            background: var(--gray);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 10px;
+            transition: border-color 0.2s;
+        }
+        .clase-card:hover { border-color: rgba(232,255,0,0.3); }
+        .clase-icon { font-size: 1.8rem; flex-shrink: 0; }
+        .clase-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 2px; }
+        .clase-info { font-size: 0.72rem; color: var(--text-muted); }
+        .clase-cupos { font-size: 0.7rem; color: var(--text-muted); flex-shrink: 0; text-align: right; }
+        .btn-inscribir {
+            background: none;
+            border: 1px solid rgba(232,255,0,0.4);
+            color: var(--accent);
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 9px 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .btn-inscribir:hover { background: var(--accent); color: var(--black); }
+        .btn-inscribir.inscrito { background: rgba(0,230,118,0.1); border-color: var(--green); color: var(--green); cursor: default; }
+
+        /* MODAL PAGO */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 500; align-items: center; justify-content: center; }
+        .modal-overlay.open { display: flex; }
+        .modal { background: var(--gray); border: 1px solid rgba(255,255,255,0.1); padding: 40px; width: 100%; max-width: 480px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px; margin-bottom: 6px; }
+        .modal-sub { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 28px; font-weight: 300; line-height: 1.6; }
+        .modal-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: color 0.2s; }
+        .modal-close:hover { color: var(--white); }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 7px; }
+        .form-input, .form-select {
+            width: 100%; background: var(--gray2);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--white); font-family: 'Barlow', sans-serif;
+            font-size: 0.9rem; font-weight: 300;
+            padding: 12px 14px; outline: none; transition: border-color 0.2s;
+        }
+        .form-input:focus, .form-select:focus { border-color: var(--accent); }
+        .form-select { appearance: none; cursor: pointer; color-scheme: dark; }
+        .form-select option { background: var(--gray2); }
+
+        /* METODO PAGO */
+        .metodos-pago { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .metodo-card {
+            background: var(--gray2);
+            border: 2px solid transparent;
+            padding: 16px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            text-align: center;
+        }
+        .metodo-card.selected { border-color: var(--accent); }
+        .metodo-card:hover { border-color: rgba(232,255,0,0.4); }
+        .metodo-icon { font-size: 1.5rem; margin-bottom: 6px; }
+        .metodo-name { font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+        .metodo-desc { font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; font-weight: 300; }
+
+        /* RESUMEN PAGO */
+        .resumen-pago {
+            background: var(--gray2);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .resumen-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .resumen-row:last-child { border-bottom: none; font-weight: 700; }
+        .resumen-row .label { font-size: 0.78rem; color: var(--text-muted); }
+        .resumen-row .value { font-size: 0.85rem; }
+        .resumen-row.total .value { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: var(--accent); }
+
+        .btn-pagar {
+            width: 100%;
+            background: var(--accent);
+            color: var(--black);
+            border: none;
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            padding: 17px;
+            cursor: pointer;
+            clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+            transition: all 0.25s;
+        }
+        .btn-pagar:hover { background: var(--white); }
+        .btn-pagar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* MODAL ÉXITO */
+        .success-modal { text-align: center; padding: 20px 0; }
+        .success-icon { font-size: 4rem; margin-bottom: 16px; }
+        .success-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 2px; color: var(--accent); margin-bottom: 8px; }
+        .success-ref { font-size: 0.75rem; color: var(--text-muted); margin-top: 16px; letter-spacing: 1px; }
+        .success-ref span { color: var(--white); }
+
+        /* EMPTY STATE */
+        .empty-state { padding: 40px; text-align: center; color: var(--text-muted); }
+        .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .empty-state p { font-size: 0.85rem; font-weight: 300; }
+
+        /* TOAST */
+        .alert-toast { position: fixed; bottom: 24px; right: 24px; background: var(--gray2); border-left: 3px solid var(--accent); padding: 14px 20px; font-size: 0.83rem; z-index: 999; display: none; }
+        .alert-toast.show { display: block; animation: fadeUp 0.3s ease; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        /* PERFIL */
+        .perfil-card { background: var(--gray); border: 1px solid rgba(255,255,255,0.06); padding: 32px; margin-bottom: 24px; }
+        .perfil-header { display: flex; align-items: center; gap: 20px; margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .perfil-avatar { width: 64px; height: 64px; background: var(--accent); color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .perfil-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; }
+        .perfil-email { font-size: 0.82rem; color: var(--text-muted); }
+        .perfil-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .btn-guardar { background: var(--accent); color: var(--black); border: none; font-family: 'Barlow', sans-serif; font-size: 0.78rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 13px 28px; cursor: pointer; clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%); transition: background 0.2s; margin-top: 8px; }
+        .btn-guardar:hover { background: var(--white); }
+
+        /* SUPLEMENTOS */
+        .suplementos-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .sup-card-cliente {
+            background: var(--gray);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 28px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: border-color 0.3s, transform 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .sup-card-cliente:hover { border-color: rgba(232,255,0,0.4); transform: translateY(-4px); }
+        .sup-card-cliente::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%; height: 2px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s;
+        }
+        .sup-card-cliente:hover::after { transform: scaleX(1); }
+        .sup-icon-lg { font-size: 3rem; text-align: center; }
+        .sup-nombre { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 2px; }
+        .sup-descripcion { font-size: 0.8rem; color: var(--text-muted); font-weight: 300; line-height: 1.6; flex: 1; }
+        .sup-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+        .sup-precio-lg { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--accent); }
+        .sup-stock-badge {
+            font-size: 0.62rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+        }
+        .stock-ok { background: rgba(0,230,118,0.1); color: var(--green); }
+        .stock-bajo { background: rgba(255,45,45,0.1); color: var(--red); }
+        .btn-comprar {
+            width: 100%;
+            background: none;
+            border: 1px solid rgba(232,255,0,0.4);
+            color: var(--accent);
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 4px;
+        }
+        .btn-comprar:hover { background: var(--accent); color: var(--black); }
+        .btn-comprar:disabled { opacity: 0.4; cursor: not-allowed; }
+  
+        /* MODAL SUPLEMENTO COMPRA */
+        .sup-modal-icon { font-size: 3.5rem; text-align: center; margin-bottom: 8px; }
+        .sup-modal-nombre { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px; text-align: center; margin-bottom: 4px; }
+        .sup-modal-precio { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--accent); text-align: center; margin-bottom: 20px; }
+        .cantidad-control { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 16px 0; }
+        .cantidad-btn {
+            width: 36px; height: 36px;
+            background: var(--gray2);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--white);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: border-color 0.2s;
+        }
+        .cantidad-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .cantidad-num { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; min-width: 40px; text-align: center; }
+        .sup-total { text-align: center; margin-bottom: 20px; }
+        .sup-total-label { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+        .sup-total-valor { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; color: var(--accent); }
+
+        /* CLASE INSCRITA */
+.clase-inscrita-card {
+    background: var(--gray);
+    border: 1px solid rgba(0,230,118,0.2);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+.clase-inscrita-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--green);
+}
+.btn-cancelar {
+    background: none;
+    border: 1px solid rgba(255,45,45,0.3);
+    color: var(--red);
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 9px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+.btn-cancelar:hover { background: rgba(255,45,45,0.1); }
+.inner-tab {
+    background: none; border: none;
+    color: var(--text-muted);
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 12px 20px 12px 0;
+    cursor: pointer; position: relative;
+    transition: color 0.2s;
+}
+.inner-tab::after {
+    content: ''; position: absolute;
+    bottom: -1px; left: 0;
+    width: 0; height: 2px;
+    background: var(--accent); transition: width 0.3s;
+}
+.inner-tab.active { color: var(--white); }
+.inner-tab.active::after { width: calc(100% - 20px); }
+.inner-tabs {
+    display: flex; gap: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <a href="../index.html" class="sidebar-logo">POWER<span>GYM</span></a>
+    <div class="sidebar-role">Mi Cuenta</div>
+
+    <button class="nav-item active" onclick="showSection('inicio')">
+        <span class="nav-icon">🏠</span> Inicio
+    </button>
+    <button class="nav-item" onclick="showSection('planes')">
+        <span class="nav-icon">📦</span> Planes
+    </button>
+    <button class="nav-item" onclick="showSection('clases')">
+        <span class="nav-icon">🏋️</span> Clases
+    </button>
+    <button class="nav-item" onclick="showSection('pagos')">
+        <span class="nav-icon">💳</span> Mis Pagos
+    </button>
+    <button class="nav-item" onclick="showSection('suplementos')">
+        <span class="nav-icon">💊</span> Suplementos
+    </button>
+    <button class="nav-item" onclick="showSection('perfil')">
+        <span class="nav-icon">👤</span> Mi Perfil
+    </button>
+
+    <div class="sidebar-bottom">
+        <div class="user-info">
+            <div class="user-avatar" id="avatar-initials">C</div>
+            <div>
+                <div class="user-name" id="sidebar-name">Cliente</div>
+                <div class="user-email" id="sidebar-email">cliente@powergym.com</div>
+            </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+    <div class="topbar">
+        <div class="page-title" id="page-title">MI PANEL</div>
+        <div class="topbar-date" id="topbar-date"></div>
+    </div>
+
+    <div class="content">
+
+        <!-- ══ INICIO ══ -->
+        <div id="sec-inicio" class="section">
+            <div class="welcome-banner">
+                <div class="welcome-text">
+                    <h2 id="welcome-name">¡Bienvenido de nuevo!</h2>
+                    <p>Continúa tu progreso. ¡Cada entrenamiento cuenta!</p>
+                </div>
+                <button class="welcome-btn" onclick="showSection('planes'); document.querySelectorAll('.nav-item')[1].classList.add('active'); document.querySelectorAll('.nav-item')[0].classList.remove('active');">Ver Planes →</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon-bg">📅</div>
+                    <div class="stat-label">Días Restantes</div>
+                    <div class="stat-value" id="stat-dias">—</div>
+                    <div class="stat-sub">de tu membresía actual</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-bg">🏋️</div>
+                    <div class="stat-label">Clases Inscritas</div>
+                    <div class="stat-value" id="stat-clases-count">0</div>
+                    <div class="stat-sub">este mes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-bg">💳</div>
+                    <div class="stat-label">Mi Plan</div>
+                    <div class="stat-value" id="stat-plan" style="font-size:1.4rem">—</div>
+                    <div class="stat-sub">membresía activa</div>
+                </div>
+            </div>
+
+            <!-- Membresía activa -->
+            <div id="membresia-wrap">
+                <div class="section-header"><div class="section-title-sm">MI MEMBRESÍA</div></div>
+                <div class="membresia-card" id="membresia-card">
+                    <div class="membresia-icon">🏅</div>
+                    <div class="membresia-info">
+                        <div class="membresia-plan" id="mem-plan">Sin membresía activa</div>
+                        <div class="membresia-dates" id="mem-dates">Adquiere un plan para comenzar</div>
+                        <div class="progress-bar-wrap">
+                            <div class="progress-bar" id="mem-progress" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="membresia-right">
+                        <div class="dias-restantes" id="mem-dias">—</div>
+                        <div class="dias-label">días restantes</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Próximas clases -->
+            <div class="section-header" style="margin-top:28px"><div class="section-title-sm">PRÓXIMAS CLASES</div></div>
+            <div id="proximas-clases"></div>
+        </div>
+
+        <!-- ══ PLANES ══ -->
+        <div id="sec-planes" class="section" style="display:none">
+            <div class="section-header">
+                <div class="section-title-sm">ELIGE TU PLAN</div>
+            </div>
+            <div class="planes-grid" id="planes-cliente-grid"></div>
+        </div>
+
+        <!-- ══ CLASES ══ -->
+        <div id="sec-clases" class="section" style="display:none">
+            <div class="inner-tabs" style="margin-bottom:24px">
+                <button class="inner-tab active" onclick="switchClaseTab('disponibles', this)">
+                    🏋️ Clases Disponibles
+                </button>
+                <button class="inner-tab" onclick="switchClaseTab('inscritas', this)">
+                    ✅ Mis Inscripciones
+                </button>
+            </div>
+  
+            <!-- DISPONIBLES -->
+            <div id="tab-disponibles" style="display:block">
+                <div class="section-header">
+                    <div class="section-title-sm">CLASES DISPONIBLES</div>
+                </div>
+                <div id="clases-lista"></div>
+            </div>
+ 
+            <!-- INSCRITAS -->
+            <div id="tab-inscritas" style="display:none">
+                <div class="section-header">
+                    <div class="section-title-sm">MIS CLASES INSCRITAS</div>
+                </div>
+                <div id="clases-inscritas-lista"></div>
+            </div>
+        </div>
+
+        <!-- ══ PAGOS ══ -->
+        <div id="sec-pagos" class="section" style="display:none">
+            <div class="section-header">
+                <div class="section-title-sm">MIS PAGOS</div>
+            </div>
+
+            <div class="inner-tabs">
+                <button class="inner-tab active" onclick="switchPagoTabCliente('membresias', this)">
+                    💳 Membresías
+                </button>
+                <button class="inner-tab" onclick="switchPagoTabCliente('suplementos', this)">
+                    💊 Suplementos
+                </button>
+            </div>
+ 
+            <!-- MEMBRESÍAS -->
+            <div id="tab-pago-membresias" style="display:block">
+                <div class="table-wrap" style="margin-top:20px">
+                    <table>
+                        <thead><tr>
+                            <th>Referencia</th>
+                            <th>Plan</th>
+                            <th>Monto</th>
+                            <th>Método</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr></thead>
+                        <tbody id="tabla-mis-pagos"></tbody>
+                    </table>
+                </div>
+            </div>
+ 
+            <!-- SUPLEMENTOS -->
+            <div id="tab-pago-suplementos" style="display:none">
+                <div class="table-wrap" style="margin-top:20px">
+                    <table>
+                        <thead><tr>
+                            <th>Referencia</th>
+                            <th>Suplemento</th>
+                            <th>Cantidad</th>
+                            <th>Total</th>
+                            <th>Método</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr></thead>
+                        <tbody id="tabla-mis-suplementos"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ SUPLEMENTOS ══ -->
+        <div id="sec-suplementos" class="section" style="display:none">
+            <div class="section-header">
+                <div class="section-title-sm">SUPLEMENTOS DISPONIBLES</div>
+            </div>
+            <div class="suplementos-grid" id="suplementos-cliente-grid"></div>
+        </div>
+
+        <!-- ══ PERFIL ══ -->
+        <div id="sec-perfil" class="section" style="display:none">
+            <div class="section-header">
+                <div class="section-title-sm">MI PERFIL</div>
+            </div>
+            <div class="perfil-card">
+                <div class="perfil-header">
+                    <div class="perfil-avatar" id="perfil-avatar">C</div>
+                    <div>
+                        <div class="perfil-name" id="perfil-name">Nombre Cliente</div>
+                        <div class="perfil-email" id="perfil-email">correo@email.com</div>
+                    </div>
+                </div>
+                <div class="perfil-grid">
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-input" id="perfil-input-nombre">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Apellido</label>
+                        <input type="text" class="form-input" id="perfil-input-apellido">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Correo electrónico</label>
+                        <input type="email" class="form-input" id="perfil-input-email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Teléfono</label>
+                        <input type="tel" class="form-input" id="perfil-input-telefono">
+                    </div>
+                </div>
+                <button class="btn-guardar" onclick="showToast('✅ Perfil actualizado correctamente')">Guardar cambios</button>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- MODAL COMPRA SUPLEMENTO -->
+<div class="modal-overlay" id="modal-suplemento-compra">
+    <div class="modal" style="max-width:420px">
+        <button class="modal-close" onclick="cerrarModalSup()">✕</button>
+
+        <div id="modal-sup-content">
+            <div class="sup-modal-icon" id="sup-modal-icon">💊</div>
+            <div class="sup-modal-nombre" id="sup-modal-nombre">Suplemento</div>
+            <div class="sup-modal-precio" id="sup-modal-precio">$0</div>
+
+            <div style="font-size:0.82rem;color:var(--text-muted);text-align:center;margin-bottom:20px;font-weight:300" id="sup-modal-desc"></div>
+
+            <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);text-align:center;margin-bottom:8px">Cantidad</div>
+            <div class="cantidad-control">
+                <button class="cantidad-btn" onclick="cambiarCantidad(-1)">−</button>
+                <span class="cantidad-num" id="sup-cantidad">1</span>
+                <button class="cantidad-btn" onclick="cambiarCantidad(1)">+</button>
+            </div>
+
+            <div class="sup-total">
+                <div class="sup-total-label">Total a pagar</div>
+                <div class="sup-total-valor" id="sup-total-valor">$0</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Método de pago</label>
+                <div class="metodos-pago">
+                    <div class="metodo-card selected" onclick="seleccionarMetodoSup('PSE', this)">
+                        <div class="metodo-icon">🏦</div>
+                        <div class="metodo-name">PSE</div>
+                        <div class="metodo-desc">Débito bancario</div>
+                    </div>
+                    <div class="metodo-card" onclick="seleccionarMetodoSup('transferencia', this)">
+                        <div class="metodo-icon">📲</div>
+                        <div class="metodo-name">Transferencia</div>
+                        <div class="metodo-desc">Nequi / Bancolombia</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-pagar" onclick="confirmarCompraSup()">Confirmar compra →</button>
+        </div>
+
+        <div id="modal-sup-exito" style="display:none" class="success-modal">
+            <div class="success-icon">✅</div>
+            <div class="success-title">¡COMPRA EXITOSA!</div>
+            <p style="font-size:0.85rem;color:var(--text-muted);font-weight:300;line-height:1.6">
+                Tu pedido ha sido registrado. Recógelo en recepción presentando tu referencia.
+            </p>
+            <div class="success-ref">Referencia: <span id="sup-ref">—</span></div>
+            <button class="btn-pagar" style="margin-top:28px" onclick="cerrarModalSup()">Volver a suplementos →</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PAGO -->
+<div class="modal-overlay" id="modal-pago">
+    <div class="modal">
+        <button class="modal-close" onclick="cerrarModal()">✕</button>
+        <div id="modal-pago-content">
+            <div class="modal-title">CONFIRMAR PAGO</div>
+            <div class="modal-sub">Selecciona tu método de pago y confirma tu membresía.</div>
+
+            <div class="resumen-pago" id="resumen-pago">
+                <div class="resumen-row">
+                    <span class="label">Plan seleccionado</span>
+                    <span class="value" id="res-plan">—</span>
+                </div>
+                <div class="resumen-row">
+                    <span class="label">Duración</span>
+                    <span class="value" id="res-dur">—</span>
+                </div>
+                <div class="resumen-row total">
+                    <span class="label">Total a pagar</span>
+                    <span class="value" id="res-precio">—</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Método de pago</label>
+                <div class="metodos-pago">
+                    <div class="metodo-card selected" onclick="seleccionarMetodo('PSE', this)">
+                        <div class="metodo-icon">🏦</div>
+                        <div class="metodo-name">PSE</div>
+                        <div class="metodo-desc">Débito bancario</div>
+                    </div>
+                    <div class="metodo-card" onclick="seleccionarMetodo('transferencia', this)">
+                        <div class="metodo-icon">📲</div>
+                        <div class="metodo-name">Transferencia</div>
+                        <div class="metodo-desc">Nequi / Bancolombia</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" id="pse-fields">
+                <label class="form-label">Banco</label>
+                <select class="form-select" id="pago-banco">
+                    <option value="">Selecciona tu banco</option>
+                    <option>Bancolombia</option>
+                    <option>Davivienda</option>
+                    <option>Banco de Bogotá</option>
+                    <option>BBVA</option>
+                    <option>Nequi</option>
+                    <option>Daviplata</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="transfer-fields" style="display:none">
+                <label class="form-label">Número de comprobante</label>
+                <input type="text" class="form-input" id="pago-comprobante" placeholder="Ej: 123456789">
+            </div>
+
+            <button class="btn-pagar" id="btn-pagar" onclick="procesarPago()">Confirmar pago →</button>
+        </div>
+
+        <div id="modal-exito" style="display:none" class="success-modal">
+            <div class="success-icon">✅</div>
+            <div class="success-title">¡PAGO EXITOSO!</div>
+            <p style="font-size:0.85rem;color:var(--text-muted);font-weight:300;line-height:1.6">Tu membresía ha sido activada. ¡Ahora puedes disfrutar de todos los beneficios de POWERGYM!</p>
+            <div class="success-ref">Referencia: <span id="pago-ref">—</span></div>
+            <button class="btn-pagar" style="margin-top:28px" onclick="cerrarModal(); showSection('inicio');">Ir a mi panel →</button>
+        </div>
+    </div>
+</div>
+
+<div class="alert-toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:3000/api';
+let usuario = {};
+let planSeleccionado = null;
+let metodoPago = 'PSE';
+
+document.addEventListener('DOMContentLoaded', () => {
+    const u = JSON.parse(localStorage.getItem('usuario') || '{}');
+    if (!u || u.rol !== 'cliente') { window.location.href = 'login.html'; return; }
+    usuario = u;
+
+    document.getElementById('sidebar-name').textContent = u.nombre + ' ' + (u.apellido || '');
+    document.getElementById('sidebar-email').textContent = u.email;
+    document.getElementById('avatar-initials').textContent = u.nombre?.charAt(0).toUpperCase() || 'C';
+    document.getElementById('welcome-name').textContent = `¡Hola, ${u.nombre}!`;
+    document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('es-CO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+    // Perfil
+    document.getElementById('perfil-avatar').textContent = u.nombre?.charAt(0).toUpperCase() || 'C';
+    document.getElementById('perfil-name').textContent = u.nombre + ' ' + (u.apellido || '');
+    document.getElementById('perfil-email').textContent = u.email;
+    document.getElementById('perfil-input-nombre').value = u.nombre || '';
+    document.getElementById('perfil-input-apellido').value = u.apellido || '';
+    document.getElementById('perfil-input-email').value = u.email || '';
+
+    cargarInicio();
+});
+
+function showSection(sec) {
+    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.getElementById('sec-' + sec).style.display = 'block';
+    event?.currentTarget?.classList.add('active');
+    const titles = { inicio:'Mi Panel', planes:'Planes & Membresías', clases:'Clases Grupales', pagos:'Mis Pagos', perfil:'Mi Perfil' };
+    document.getElementById('page-title').textContent = titles[sec] || sec;
+    if (sec === 'planes') cargarPlanesCliente();
+    if (sec === 'clases') cargarClasesCliente();
+    if (sec === 'pagos') { cargarMisPagos(); cargarMisPedidosSup(); }
+    if (sec === 'suplementos') cargarSuplementosCliente();
+}
+
+// ── INICIO ──
+async function cargarInicio() {
+    try {
+        const res = await fetch(`${API}/clases`);
+        const clases = await res.json();
+        const icons = { 'Cycling':'🚴', 'Box':'🥊', 'Aeróbicos':'💃' };
+        const proximas = clases.slice(0, 3);
+        document.getElementById('proximas-clases').innerHTML = proximas.map(c => `
+            <div class="clase-card">
+                <div class="clase-icon">${icons[c.nombre] || '🏋️'}</div>
+                <div style="flex:1">
+                    <div class="clase-name">${c.nombre}</div>
+                    <div class="clase-info">${c.dia_semana} · ${c.hora_inicio?.slice(0,5)} — ${c.hora_fin?.slice(0,5)} · ${c.capacidad_maxima} cupos</div>
+                </div>
+                <button class="btn-inscribir" onclick="inscribirClase(${c.id}, this)">Inscribirme</button>
+            </div>`).join('');
+    } catch {
+        document.getElementById('proximas-clases').innerHTML = '<div class="empty-state"><div class="empty-icon">🏋️</div><p>Sin clases disponibles</p></div>';
+    }
+    document.getElementById('stat-dias').textContent = '—';
+    document.getElementById('stat-plan').textContent = 'Sin plan';
+}
+
+// ── PLANES ──
+async function cargarPlanesCliente() {
+    const grid = document.getElementById('planes-cliente-grid');
+    grid.innerHTML = '<div style="color:var(--text-muted)">Cargando planes...</div>';
+    try {
+        const res = await fetch(`${API}/planes`);
+        const planes = await res.json();
+        const durs = ['1 Mes', '3 Meses', '6 Meses', '1 Año'];
+        grid.innerHTML = planes.map((p, i) => {
+            const featured = i === 2;
+            return `
+            <div class="plan-card ${featured ? 'featured' : ''}">
+                ${i === 3 ? '<div class="plan-badge">Más popular</div>' : ''}
+                <div class="plan-name">${p.nombre}</div>
+                <div class="plan-dur">${durs[i] || ''}</div>
+                <div class="plan-price">$${Number(p.precio).toLocaleString('es-CO')}</div>
+                <div class="plan-cop">COP / período</div>
+                <ul class="plan-features">
+                    ${(p.beneficios || '').split(',').map(b => `<li>${b.trim()}</li>`).join('')}
+                </ul>
+                <button class="${featured ? 'btn-plan solid' : 'btn-plan'}" onclick='abrirPago(${JSON.stringify(p)}, "${durs[i] || ''}")'>
+                    Adquirir plan →
+                </button>
+            </div>`;
+        }).join('');
+    } catch {
+        grid.innerHTML = `
+            ${[
+                {nombre:'Plan Básico',precio:79900,duracion_dias:30,beneficios:'Acceso musculación y cardio,Casillero incluido,Evaluación física inicial'},
+                {nombre:'Plan Estándar',precio:199900,duracion_dias:90,beneficios:'Todo Plan Básico,2 clases grupales/semana,10% descuento suplementos'},
+                {nombre:'Plan Premium',precio:349900,duracion_dias:180,beneficios:'Todo Plan Estándar,Clases ilimitadas,1 sesión entrenador mensual,15% descuento suplementos'},
+                {nombre:'Plan Anual',precio:599900,duracion_dias:365,beneficios:'Todo Plan Premium,Entrenador cada 15 días,Rutina personalizada,20% descuento suplementos'}
+            ].map((p,i) => `
+                <div class="plan-card ${i===2?'featured':''}">
+                    ${i===3?'<div class="plan-badge">Más popular</div>':''}
+                    <div class="plan-name">${p.nombre}</div>
+                    <div class="plan-dur">${['1 Mes','3 Meses','6 Meses','1 Año'][i]}</div>
+                    <div class="plan-price">$${Number(p.precio).toLocaleString('es-CO')}</div>
+                    <div class="plan-cop">COP / período</div>
+                    <ul class="plan-features">${p.beneficios.split(',').map(b=>`<li>${b.trim()}</li>`).join('')}</ul>
+                    <button class="${i===2?'btn-plan solid':'btn-plan'}" onclick='abrirPago(${JSON.stringify(p)}, "${['1 Mes','3 Meses','6 Meses','1 Año'][i]}")'>Adquirir plan →</button>
+                </div>`).join('')}`;
+    }
+}
+
+// ── CLASES ──
+function switchClaseTab(tab, el) {
+    document.querySelectorAll('#sec-clases .inner-tab').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-disponibles').style.display = tab === 'disponibles' ? 'block' : 'none';
+    document.getElementById('tab-inscritas').style.display   = tab === 'inscritas'   ? 'block' : 'none';
+    if (tab === 'disponibles') cargarClasesCliente();
+    if (tab === 'inscritas')   cargarClasesInscritas();
+}
+
+async function cargarClasesCliente() {
+    const lista = document.getElementById('clases-lista');
+    lista.innerHTML = '<div style="color:var(--text-muted)">Cargando clases...</div>';
+    const icons = { 'Cycling':'🚴', 'Box':'🥊', 'Aeróbicos':'💃' };
+
+    try {
+        // Cargar todas las clases e inscritas al mismo tiempo
+        const [resClases, resInscritas] = await Promise.all([
+            fetch(`${API}/clases`),
+            fetch(`${API}/clases/usuario/${usuario.id}`)
+        ]);
+        const clases    = await resClases.json();
+        const inscritas = resInscritas.ok ? await resInscritas.json() : [];
+        const idsInscritas = inscritas.map(i => i.clase_id);
+
+        lista.innerHTML = clases.map(c => {
+            const yaInscrito = idsInscritas.includes(c.id);
+            return `
+            <div class="clase-card">
+                <div class="clase-icon">${icons[c.nombre] || '🏋️'}</div>
+                <div style="flex:1">
+                    <div class="clase-name">${c.nombre}</div>
+                    <div class="clase-info">
+                        ${c.dia_semana} · ${c.hora_inicio?.slice(0,5)} — ${c.hora_fin?.slice(0,5)}
+                        ${c.entrenador_nombre ? ` · 👤 ${c.entrenador_nombre}` : ''}
+                    </div>
+                    <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px">
+                        ${c.capacidad_maxima} cupos disponibles
+                    </div>
+                </div>
+                <button class="btn-inscribir ${yaInscrito ? 'inscrito' : ''}"
+                    onclick="inscribirClase(${c.id}, this)"
+                    ${yaInscrito ? 'disabled' : ''}>
+                    ${yaInscrito ? '✓ Inscrito' : 'Inscribirme'}
+                </button>
+            </div>`;
+        }).join('') || '<div class="empty-state"><div class="empty-icon">🏋️</div><p>Sin clases disponibles</p></div>';
+
+        // Actualizar contador
+        document.getElementById('stat-clases-count').textContent = inscritas.length;
+
+    } catch {
+        lista.innerHTML = '<div class="empty-state"><p>❌ Error al cargar clases</p></div>';
+    }
+}
+
+async function cargarClasesInscritas() {
+    const lista = document.getElementById('clases-inscritas-lista');
+    lista.innerHTML = '<div style="color:var(--text-muted)">Cargando...</div>';
+    const icons = { 'Cycling':'🚴', 'Box':'🥊', 'Aeróbicos':'💃' };
+
+    try {
+        const res = await fetch(`${API}/clases/usuario/${usuario.id}`);
+        const inscritas = await res.json();
+
+        if (!inscritas.length) {
+            lista.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🏋️</div>
+                    <p>No estás inscrito en ninguna clase aún.</p>
+                    <button class="btn-inscribir" style="margin-top:16px" 
+                        onclick="switchClaseTab('disponibles', document.querySelector('#sec-clases .inner-tab'))">
+                        Ver clases disponibles
+                    </button>
+                </div>`;
+            return;
+        }
+
+        lista.innerHTML = inscritas.map(c => `
+            <div class="clase-inscrita-card" id="inscripcion-${c.inscripcion_id}">
+                <div class="clase-icon">${icons[c.nombre] || '🏋️'}</div>
+                <div style="flex:1">
+                    <div class="clase-name">${c.nombre}</div>
+                    <div class="clase-info">
+                        ${c.dia_semana} · ${c.hora_inicio?.slice(0,5)} — ${c.hora_fin?.slice(0,5)}
+                        ${c.entrenador_nombre ? ` · 👤 ${c.entrenador_nombre}` : ''}
+                    </div>
+                    <div style="font-size:0.7rem;margin-top:6px">
+                        <span class="badge badge-active">✅ Inscrito</span>
+                        <span style="color:var(--text-muted);font-size:0.68rem;margin-left:8px">
+                            desde ${new Date(c.fecha_inscripcion).toLocaleDateString('es-CO')}
+                        </span>
+                    </div>
+                </div>
+                <button class="btn-cancelar" onclick="cancelarInscripcion(${c.inscripcion_id}, '${c.nombre}', this)">
+                    Cancelar
+                </button>
+            </div>`).join('');
+
+        document.getElementById('stat-clases-count').textContent = inscritas.length;
+
+    } catch {
+        lista.innerHTML = '<div class="empty-state"><p>❌ Error al cargar inscripciones</p></div>';
+    }
+}
+
+async function inscribirClase(idClase, btn) {
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.textContent = 'Inscribiendo...';
+
+    try {
+        const res = await fetch(`${API}/clases/inscribir`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_usuario: usuario.id, id_clase: idClase })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            btn.textContent = '✓ Inscrito';
+            btn.classList.add('inscrito');
+            const count = document.getElementById('stat-clases-count');
+            count.textContent = parseInt(count.textContent || 0) + 1;
+            showToast('✅ ¡Inscripción exitosa! Puedes verla en "Mis Inscripciones"');
+        } else {
+            showToast('❌ ' + (data.mensaje || 'Error al inscribirse'));
+            btn.disabled = false;
+            btn.textContent = 'Inscribirme';
+        }
+    } catch {
+        showToast('❌ Error de conexión');
+        btn.disabled = false;
+        btn.textContent = 'Inscribirme';
+    }
+}
+
+async function cancelarInscripcion(idInscripcion, nombreClase, btn) {
+    if (!confirm(`¿Seguro que deseas cancelar tu inscripción a ${nombreClase}?`)) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Cancelando...';
+
+    try {
+        const res = await fetch(`${API}/clases/cancelar/${idInscripcion}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (res.ok) {
+            const card = document.getElementById(`inscripcion-${idInscripcion}`);
+            card.style.opacity = '0';
+            card.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => { card.remove(); cargarClasesInscritas(); }, 300);
+            showToast('✅ Inscripción cancelada');
+        } else {
+            showToast('❌ ' + (data.mensaje || 'Error al cancelar'));
+            btn.disabled = false;
+            btn.textContent = 'Cancelar';
+        }
+    } catch {
+        showToast('❌ Error de conexión');
+        btn.disabled = false;
+        btn.textContent = 'Cancelar';
+    }
+}
+
+async function inscribirClase(idClase, btn) {
+    if (btn.classList.contains('inscrito')) return;
+    try {
+        const res = await fetch(`${API}/clases/inscribir`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_usuario: usuario.id, id_clase: idClase })
+        });
+        if (res.ok) {
+            btn.textContent = '✓ Inscrito';
+            btn.classList.add('inscrito');
+            const count = document.getElementById('stat-clases-count');
+            count.textContent = parseInt(count.textContent || 0) + 1;
+            showToast('✅ ¡Inscripción exitosa!');
+        } else {
+            showToast('❌ Error al inscribirse');
+        }
+    } catch {
+        // Simulación si no hay servidor
+        btn.textContent = '✓ Inscrito';
+        btn.classList.add('inscrito');
+        showToast('✅ ¡Inscripción exitosa! (simulada)');
+    }
+}
+
+// ── PAGOS ──
+function abrirPago(plan, duracion) {
+    planSeleccionado = plan;
+    document.getElementById('res-plan').textContent = plan.nombre;
+    document.getElementById('res-dur').textContent = duracion;
+    document.getElementById('res-precio').textContent = '$' + Number(plan.precio).toLocaleString('es-CO') + ' COP';
+    document.getElementById('modal-pago-content').style.display = 'block';
+    document.getElementById('modal-exito').style.display = 'none';
+    document.getElementById('modal-pago').classList.add('open');
+}
+
+function cerrarModal() {
+    document.getElementById('modal-pago').classList.remove('open');
+    planSeleccionado = null;
+}
+
+function seleccionarMetodo(metodo, el) {
+    metodoPago = metodo;
+    document.querySelectorAll('.metodo-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('pse-fields').style.display = metodo === 'PSE' ? 'block' : 'none';
+    document.getElementById('transfer-fields').style.display = metodo === 'transferencia' ? 'block' : 'none';
+}
+
+async function procesarPago() {
+    if (!planSeleccionado) return;
+    const btn = document.getElementById('btn-pagar');
+    btn.disabled = true;
+    btn.textContent = 'Procesando...';
+
+    await new Promise(r => setTimeout(r, 2000)); // Simulación
+
+    try {
+        const res = await fetch(`${API}/pagos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_usuario: usuario.id, id_plan: planSeleccionado.id, metodo_pago: metodoPago })
+        });
+        const data = await res.json();
+        mostrarExito(data.referencia || 'PG-' + Date.now());
+    } catch {
+        mostrarExito('PG-' + Date.now()); // Simulación
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Confirmar pago →';
+}
+
+function mostrarExito(referencia) {
+    document.getElementById('modal-pago-content').style.display = 'none';
+    document.getElementById('modal-exito').style.display = 'block';
+    document.getElementById('pago-ref').textContent = referencia;
+    document.getElementById('stat-plan').textContent = planSeleccionado?.nombre || 'Activo';
+}
+
+// ── SUPLEMENTOS ──
+let supSeleccionado = null;
+let cantidadSup = 1;
+let metodoPagoSup = 'PSE';
+const supIcons = {
+    'Proteína Whey': '🥛',
+    'Creatina': '⚡',
+    'Pre-Entreno': '💥',
+    'BCAA': '💪',
+    'Multivitamínico': '🌿'
+};
+
+async function cargarSuplementosCliente() {
+    const grid = document.getElementById('suplementos-cliente-grid');
+    grid.innerHTML = '<div style="color:var(--text-muted);grid-column:1/-1;padding:20px">Cargando suplementos...</div>';
+    try {
+        const res = await fetch(`${API}/suplementos`);
+        const sups = await res.json();
+
+        if (!sups.length) {
+            grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">💊</div><p>Sin suplementos disponibles por el momento.</p></div>';
+            return;
+        }
+
+        grid.innerHTML = sups.map(s => `
+            <div class="sup-card-cliente">
+                <div class="sup-icon-lg">${supIcons[s.nombre] || '💊'}</div>
+                <div class="sup-nombre">${s.nombre}</div>
+                <div class="sup-descripcion">${s.descripcion || 'Suplemento de alta calidad para potenciar tus resultados.'}</div>
+                <div class="sup-footer">
+                    <div class="sup-precio-lg">$${Number(s.precio).toLocaleString('es-CO')}</div>
+                    <span class="sup-stock-badge ${s.stock > 5 ? 'stock-ok' : 'stock-bajo'}">
+                        ${s.stock > 5 ? `✅ ${s.stock} disponibles` : s.stock > 0 ? `⚠️ Últimas ${s.stock} unidades` : '❌ Agotado'}
+                    </span>
+                </div>
+                <button class="btn-comprar" 
+                    ${s.stock === 0 ? 'disabled' : ''}
+                    onclick='abrirCompraSuplemento(${JSON.stringify(s)})'>
+                    ${s.stock === 0 ? 'Agotado' : 'Comprar →'}
+                </button>
+            </div>`).join('');
+    } catch {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><p>❌ Error al cargar suplementos</p></div>';
+    }
+}
+
+function abrirCompraSuplemento(s) {
+    supSeleccionado = s;
+    cantidadSup = 1;
+    metodoPagoSup = 'PSE';
+
+    document.getElementById('sup-modal-icon').textContent   = supIcons[s.nombre] || '💊';
+    document.getElementById('sup-modal-nombre').textContent = s.nombre;
+    document.getElementById('sup-modal-precio').textContent = '$' + Number(s.precio).toLocaleString('es-CO') + ' COP';
+    document.getElementById('sup-modal-desc').textContent   = s.descripcion || '';
+    document.getElementById('sup-cantidad').textContent     = 1;
+    document.getElementById('sup-total-valor').textContent  = '$' + Number(s.precio).toLocaleString('es-CO') + ' COP';
+
+    // Reset metodo pago
+    document.querySelectorAll('#modal-suplemento-compra .metodo-card').forEach(c => c.classList.remove('selected'));
+    document.querySelector('#modal-suplemento-compra .metodo-card').classList.add('selected');
+
+    document.getElementById('modal-sup-content').style.display = 'block';
+    document.getElementById('modal-sup-exito').style.display   = 'none';
+    document.getElementById('modal-suplemento-compra').classList.add('open');
+}
+
+function cambiarCantidad(delta) {
+    if (!supSeleccionado) return;
+    cantidadSup = Math.max(1, Math.min(supSeleccionado.stock, cantidadSup + delta));
+    document.getElementById('sup-cantidad').textContent    = cantidadSup;
+    const total = supSeleccionado.precio * cantidadSup;
+    document.getElementById('sup-total-valor').textContent = '$' + Number(total).toLocaleString('es-CO') + ' COP';
+}
+
+function seleccionarMetodoSup(metodo, el) {
+    metodoPagoSup = metodo;
+    document.querySelectorAll('#modal-suplemento-compra .metodo-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+}
+
+async function confirmarCompraSup() {
+    if (!supSeleccionado) return;
+
+    const btn = document.querySelector('#modal-sup-content .btn-pagar');
+    btn.disabled = true;
+    btn.textContent = 'Procesando...';
+
+    try {
+        const res = await fetch(`${API}/suplementos/pedidos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id_usuario:    usuario.id,
+                id_suplemento: supSeleccionado.id,
+                cantidad:      cantidadSup,
+                metodo_pago:   metodoPagoSup
+            })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            document.getElementById('modal-sup-content').style.display = 'none';
+            document.getElementById('modal-sup-exito').style.display   = 'block';
+            document.getElementById('sup-ref').textContent = data.referencia;
+            // Recargar suplementos para actualizar stock
+            cargarSuplementosCliente();
+            // Recargar pagos de suplementos si ya están cargados
+            if (document.getElementById('tab-pago-suplementos').style.display === 'block') {
+                cargarMisPedidosSup();
+            }
+        } else {
+            showToast('❌ ' + (data.mensaje || 'Error al procesar compra'));
+        }
+    } catch {
+        // Simulación si no hay conexión
+        const referencia = 'SUP-' + Date.now();
+        document.getElementById('modal-sup-content').style.display = 'none';
+        document.getElementById('modal-sup-exito').style.display   = 'block';
+        document.getElementById('sup-ref').textContent = referencia;
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Confirmar compra →';
+}
+
+function cerrarModalSup() {
+    document.getElementById('modal-suplemento-compra').classList.remove('open');
+    supSeleccionado = null;
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function switchPagoTabCliente(tab, el) {
+    document.querySelectorAll('#sec-pagos .inner-tab').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-pago-membresias').style.display  = tab === 'membresias'  ? 'block' : 'none';
+    document.getElementById('tab-pago-suplementos').style.display = tab === 'suplementos' ? 'block' : 'none';
+    if (tab === 'membresias')  cargarMisPagos();
+    if (tab === 'suplementos') cargarMisPedidosSup();
+}
+
+async function cargarMisPagos() {
+    const tbody = document.getElementById('tabla-mis-pagos');
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">⏳</div><p>Cargando...</p></div></td></tr>';
+
+    try {
+        const res = await fetch(`${API}/pagos/usuario/${usuario.id}`);
+        const pagos = await res.json();
+
+        if (!pagos.length) {
+            tbody.innerHTML = `
+                <tr><td colspan="6">
+                    <div class="empty-state">
+                        <div class="empty-icon">💳</div>
+                        <p>Aún no tienes pagos de membresías.</p>
+                        <button class="btn-inscribir" style="margin-top:16px"
+                            onclick="showSection('planes');document.querySelectorAll('.nav-item')[1].classList.add('active');document.querySelectorAll('.nav-item')[0].classList.remove('active')">
+                            Ver planes →
+                        </button>
+                    </div>
+                </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = pagos.map(p => `
+            <tr>
+                <td style="font-size:0.72rem;color:var(--accent);font-family:monospace">
+                    ${p.referencia}
+                </td>
+                <td class="td-name">${p.plan_nombre}</td>
+                <td style="color:var(--accent);font-family:'Bebas Neue',sans-serif;font-size:1.1rem">
+                    $${Number(p.monto).toLocaleString('es-CO')}
+                </td>
+                <td>${p.metodo_pago === 'PSE' ? '🏦 PSE' : '📲 Transferencia'}</td>
+                <td>
+                    <span class="badge ${p.estado === 'completado' ? 'badge-active' : 'badge-pendiente'}">
+                        ${p.estado}
+                    </span>
+                </td>
+                <td style="color:var(--text-muted);font-size:0.78rem">
+                    ${new Date(p.fecha_pago).toLocaleDateString('es-CO')}
+                </td>
+            </tr>`).join('');
+
+        // Actualizar membresía en inicio
+        const ultimo = pagos[0];
+        if (ultimo) {
+            document.getElementById('stat-plan').textContent = ultimo.plan_nombre;
+            const hoy   = new Date();
+            const vence = new Date(ultimo.fecha_vencimiento);
+            const dias  = Math.max(0, Math.ceil((vence - hoy) / (1000*60*60*24)));
+            document.getElementById('stat-dias').textContent = dias;
+            document.getElementById('mem-plan').textContent  = ultimo.plan_nombre;
+            document.getElementById('mem-dias').textContent  = dias;
+            document.getElementById('mem-dates').textContent =
+                `Desde ${new Date(ultimo.fecha_inicio).toLocaleDateString('es-CO')} hasta ${vence.toLocaleDateString('es-CO')}`;
+            const pct = Math.max(0, Math.min(100, (dias / 30) * 100));
+            document.getElementById('mem-progress').style.width = pct + '%';
+        }
+    } catch {
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><p>❌ Error al cargar pagos</p></div></td></tr>';
+    }
+}
+
+async function cargarMisPedidosSup() {
+    const tbody = document.getElementById('tabla-mis-suplementos');
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">⏳</div><p>Cargando...</p></div></td></tr>';
+
+    const supIcons = {
+        'Proteína Whey':'🥛', 'Creatina':'⚡',
+        'Pre-Entreno':'💥', 'BCAA':'💪', 'Multivitamínico':'🌿'
+    };
+
+    try {
+        const res = await fetch(`${API}/suplementos/pedidos/usuario/${usuario.id}`);
+        const pedidos = await res.json();
+
+        if (!pedidos.length) {
+            tbody.innerHTML = `
+                <tr><td colspan="7">
+                    <div class="empty-state">
+                        <div class="empty-icon">💊</div>
+                        <p>Aún no has comprado suplementos.</p>
+                        <button class="btn-inscribir" style="margin-top:16px"
+                            onclick="showSection('suplementos');document.querySelectorAll('.nav-item')[4].classList.add('active');document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.querySelectorAll('.nav-item')[4].classList.add('active')">
+                            Ver suplementos →
+                        </button>
+                    </div>
+                </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = pedidos.map(p => `
+            <tr>
+                <td style="font-size:0.72rem;color:var(--accent);font-family:monospace">
+                    ${p.referencia}
+                </td>
+                <td class="td-name">
+                    ${supIcons[p.suplemento_nombre] || '💊'} ${p.suplemento_nombre}
+                </td>
+                <td style="text-align:center;font-weight:600">${p.cantidad}</td>
+                <td style="color:var(--accent);font-family:'Bebas Neue',sans-serif;font-size:1.1rem">
+                    $${Number(p.total).toLocaleString('es-CO')}
+                </td>
+                <td>${p.metodo_pago === 'PSE' ? '🏦 PSE' : '📲 Transferencia'}</td>
+                <td>
+                    <span class="badge ${p.estado === 'completado' ? 'badge-active' : 'badge-pendiente'}">
+                        ${p.estado}
+                    </span>
+                </td>
+                <td style="color:var(--text-muted);font-size:0.78rem">
+                    ${new Date(p.fecha_pedido).toLocaleDateString('es-CO')}
+                </td>
+            </tr>`).join('');
+
+    } catch {
+        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>❌ Error al cargar pedidos</p></div></td></tr>';
+    }
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+    window.location.href = 'login.html';
+}
+
+document.getElementById('modal-pago').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-pago')) cerrarModal();
+});
+</script>
+</body>
+</html>

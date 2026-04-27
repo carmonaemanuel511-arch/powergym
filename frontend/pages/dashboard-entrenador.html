@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POWERGYM — Panel Entrenador</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --black: #0a0a0a;
+            --white: #f5f5f0;
+            --gray: #1a1a1a;
+            --gray2: #2a2a2a;
+            --gray3: #333;
+            --accent: #ff2020;
+            --red: #ff2d2d;
+            --green: #00e676;
+            --text-muted: #888;
+            --sidebar: 240px;
+        }
+        html, body { height: 100%; overflow: hidden; }
+        body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; display: flex; }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: var(--sidebar);
+            height: 100vh;
+            background: var(--gray);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0; top: 0;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            z-index: 100;
+        }
+        .sidebar-logo { padding: 28px 24px 16px; font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 3px; text-decoration: none; color: var(--white); display: block; }
+        .sidebar-logo span { color: var(--accent); }
+        .sidebar-role { padding: 0 24px 18px; font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 8px; }
+        .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 13px 24px; color: var(--text-muted);
+            font-size: 0.78rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+            cursor: pointer; border: none; background: none; width: 100%; text-align: left;
+            transition: color 0.2s, background 0.2s; position: relative;
+        }
+        .nav-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--accent); transition: width 0.2s; }
+        .nav-item:hover { color: var(--white); background: rgba(255,255,255,0.03); }
+        .nav-item.active { color: var(--accent); }
+        .nav-item.active::before { width: 3px; }
+        .nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+        .sidebar-bottom { margin-top: auto; padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .user-avatar { width: 36px; height: 36px; background: var(--accent); color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .user-name { font-size: 0.8rem; font-weight: 600; }
+        .user-email { font-size: 0.68rem; color: var(--text-muted); }
+        .btn-logout { width: 100%; background: rgba(255,45,45,0.1); border: 1px solid rgba(255,45,45,0.2); color: var(--red); font-family: 'Barlow', sans-serif; font-size: 0.7rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; padding: 10px; cursor: pointer; transition: background 0.2s; }
+        .btn-logout:hover { background: rgba(255,45,45,0.2); }
+
+        /* MAIN */
+        .main { margin-left: var(--sidebar); width: calc(100% - var(--sidebar)); height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
+        .main::-webkit-scrollbar { width: 4px; }
+        .main::-webkit-scrollbar-thumb { background: var(--gray2); }
+        .topbar { padding: 20px 36px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between; background: var(--black); position: sticky; top: 0; z-index: 50; }
+        .page-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; }
+        .topbar-right { display: flex; align-items: center; gap: 16px; }
+        .topbar-date { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; }
+        .content { padding: 32px 36px; flex: 1; }
+
+        /* DISPONIBILIDAD BANNER */
+        .disp-banner {
+            padding: 28px 32px;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            border: 2px solid;
+            transition: all 0.3s;
+        }
+        .disp-banner.disponible { background: rgba(0,230,118,0.06); border-color: rgba(0,230,118,0.3); }
+        .disp-banner.no-disponible { background: rgba(255,45,45,0.06); border-color: rgba(255,45,45,0.3); }
+        .disp-left { display: flex; align-items: center; gap: 16px; }
+        .disp-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; animation: pulse 2s infinite; }
+        .disponible .disp-dot { background: var(--green); }
+        .no-disponible .disp-dot { background: var(--red); animation: none; }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.2)} }
+        .disp-text h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 2px; margin-bottom: 2px; }
+        .disp-text p { font-size: 0.8rem; color: var(--text-muted); font-weight: 300; }
+        .toggle-grande {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+        }
+        .toggle-track {
+            width: 56px; height: 28px;
+            background: var(--gray3);
+            border-radius: 14px;
+            position: relative;
+            transition: background 0.3s;
+            cursor: pointer;
+        }
+        .toggle-track.on { background: var(--green); }
+        .toggle-track::after {
+            content: '';
+            width: 20px; height: 20px;
+            background: var(--white);
+            border-radius: 50%;
+            position: absolute;
+            top: 4px; left: 4px;
+            transition: left 0.3s;
+        }
+        .toggle-track.on::after { left: 32px; }
+        .toggle-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+        .disponible .toggle-label { color: var(--green); }
+        .no-disponible .toggle-label { color: var(--red); }
+
+        /* STATS */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+        .stat-card { background: var(--gray); padding: 24px; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; transition: border-color 0.2s; }
+        .stat-card:hover { border-color: rgba(232,255,0,0.2); }
+        .stat-card::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform 0.3s; }
+        .stat-card:hover::after { transform: scaleX(1); }
+        .stat-icon-bg { position: absolute; top: 16px; right: 16px; font-size: 1.8rem; opacity: 0.12; }
+        .stat-label { font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+        .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 2.6rem; line-height: 1; }
+        .stat-value span { color: var(--accent); }
+        .stat-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; font-weight: 300; }
+
+        /* DOS COLUMNAS */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+
+        /* SECTION HEADER */
+        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .section-title-sm { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 2px; }
+
+        /* TABLA */
+        .table-wrap { background: var(--gray); border: 1px solid rgba(255,255,255,0.05); overflow: hidden; margin-bottom: 28px; }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { border-bottom: 1px solid rgba(255,255,255,0.08); }
+        th { text-align: left; font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); padding: 12px 18px; font-weight: 600; }
+        td { padding: 12px 18px; font-size: 0.82rem; font-weight: 300; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover { background: rgba(255,255,255,0.02); }
+        .td-name { font-weight: 600; }
+        .badge { display: inline-block; font-size: 0.6rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; }
+        .badge-active { background: rgba(0,230,118,0.12); color: var(--green); }
+        .badge-cycling { background: rgba(232,255,0,0.1); color: var(--accent); }
+        .badge-box { background: rgba(255,45,45,0.1); color: var(--red); }
+        .badge-aerobicos { background: rgba(100,160,255,0.1); color: #64a0ff; }
+
+        /* CLASE HORARIO CARD */
+        .horario-card {
+            background: var(--gray);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 10px;
+            transition: border-color 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .horario-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+        .horario-card:hover { border-color: rgba(232,255,0,0.3); }
+        .horario-icon { font-size: 1.8rem; flex-shrink: 0; }
+        .horario-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 2px; }
+        .horario-info { font-size: 0.72rem; color: var(--text-muted); }
+        .horario-dia { margin-left: auto; text-align: right; flex-shrink: 0; }
+        .horario-dia-nombre { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1px; color: var(--accent); }
+        .horario-hora { font-size: 0.7rem; color: var(--text-muted); }
+
+        /* ALUMNO CARD */
+        .alumno-card {
+            background: var(--gray);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 8px;
+            transition: border-color 0.2s;
+        }
+        .alumno-card:hover { border-color: rgba(232,255,0,0.2); }
+        .alumno-avatar { width: 38px; height: 38px; background: var(--gray2); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--accent); flex-shrink: 0; }
+        .alumno-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 2px; }
+        .alumno-info { font-size: 0.7rem; color: var(--text-muted); }
+        .alumno-badge { margin-left: auto; }
+
+        /* PERFIL CARD */
+        .perfil-card { background: var(--gray); border: 1px solid rgba(255,255,255,0.06); padding: 32px; margin-bottom: 24px; }
+        .perfil-header { display: flex; align-items: center; gap: 20px; margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .perfil-avatar-lg { width: 72px; height: 72px; background: var(--accent); color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .perfil-name { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px; }
+        .perfil-spec { font-size: 0.8rem; color: var(--accent); letter-spacing: 1px; margin-top: 4px; }
+        .perfil-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 7px; }
+        .form-input { width: 100%; background: var(--gray2); border: 1px solid rgba(255,255,255,0.08); color: var(--white); font-family: 'Barlow', sans-serif; font-size: 0.9rem; font-weight: 300; padding: 12px 14px; outline: none; transition: border-color 0.2s; }
+        .form-input:focus { border-color: var(--accent); }
+        .form-input::placeholder { color: rgba(255,255,255,0.2); }
+        textarea.form-input { resize: vertical; min-height: 80px; }
+        .btn-guardar { background: var(--accent); color: var(--black); border: none; font-family: 'Barlow', sans-serif; font-size: 0.78rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 13px 28px; cursor: pointer; clip-path: polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%); transition: background 0.2s; margin-top: 8px; }
+        .btn-guardar:hover { background: var(--white); }
+
+        /* RUTINAS */
+        .rutina-card { background: var(--gray); border: 1px solid rgba(255,255,255,0.06); padding: 24px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 16px; transition: border-color 0.2s; }
+        .rutina-card:hover { border-color: rgba(232,255,0,0.3); }
+        .rutina-nivel { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; margin-bottom: 8px; display: inline-block; }
+        .nivel-principiante { background: rgba(0,230,118,0.1); color: var(--green); }
+        .nivel-intermedio { background: rgba(232,255,0,0.1); color: var(--accent); }
+        .nivel-avanzado { background: rgba(255,45,45,0.1); color: var(--red); }
+        .rutina-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 2px; margin-bottom: 4px; }
+        .rutina-tipo { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 8px; }
+        .rutina-desc { font-size: 0.8rem; color: var(--text-muted); font-weight: 300; line-height: 1.6; }
+        .btn-sm { background: var(--accent); color: var(--black); border: none; font-family: 'Barlow', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 10px 20px; cursor: pointer; clip-path: polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%); transition: background 0.2s; }
+        .btn-sm:hover { background: var(--white); }
+        .btn-sm-outline { background: none; border: 1px solid rgba(255,255,255,0.15); color: var(--white); font-family: 'Barlow', sans-serif; font-size: 0.7rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+        .btn-sm-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* EMPTY STATE */
+        .empty-state { padding: 40px; text-align: center; color: var(--text-muted); }
+        .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .empty-state p { font-size: 0.85rem; font-weight: 300; }
+
+        /* MODAL */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 500; align-items: center; justify-content: center; }
+        .modal-overlay.open { display: flex; }
+        .modal { background: var(--gray); border: 1px solid rgba(255,255,255,0.1); padding: 40px; width: 100%; max-width: 480px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px; margin-bottom: 6px; }
+        .modal-sub { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 28px; font-weight: 300; }
+        .modal-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
+        .modal-close:hover { color: var(--white); }
+        .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+        .form-select { width: 100%; background: var(--gray2); border: 1px solid rgba(255,255,255,0.08); color: var(--white); font-family: 'Barlow', sans-serif; font-size: 0.9rem; font-weight: 300; padding: 12px 14px; outline: none; transition: border-color 0.2s; appearance: none; cursor: pointer; color-scheme: dark; }
+        .form-select:focus { border-color: var(--accent); }
+        .form-select option { background: var(--gray2); }
+
+        /* TOAST */
+        .alert-toast { position: fixed; bottom: 24px; right: 24px; background: var(--gray2); border-left: 3px solid var(--accent); padding: 14px 20px; font-size: 0.83rem; z-index: 999; display: none; }
+        .alert-toast.show { display: block; animation: fadeUp 0.3s ease; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+        /* MODAL RUTINA DETALLE */
+        .rutina-modal-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .rutina-modal-nivel {
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 5px 12px;
+            flex-shrink: 0;
+            margin-top: 6px;
+        }
+        .rutina-modal-titulo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        .rutina-modal-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .rutina-modal-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .semana-block {
+            margin-bottom: 24px;
+        }
+        .semana-titulo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            color: var(--accent);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .semana-titulo::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(232,255,0,0.2);
+        }
+        .dia-block {
+            background: var(--gray2);
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+        .dia-header {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .dia-header:hover { background: var(--gray3); }
+        .dia-nombre {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 2px;
+        }
+        .dia-tipo {
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .dia-chevron {
+            color: var(--accent);
+            font-size: 0.8rem;
+            transition: transform 0.2s;
+        }
+        .dia-chevron.open { transform: rotate(180deg); }
+        .ejercicios-lista {
+            display: none;
+            padding: 0 16px 16px;
+        }
+        .ejercicios-lista.open { display: block; }
+        .ejercicio-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 8px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            align-items: center;
+        }
+        .ejercicio-row:last-child { border-bottom: none; }
+        .ejercicio-nombre { font-size: 0.83rem; font-weight: 600; }
+        .ejercicio-dato {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        .ejercicio-dato span {
+            display: block;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.2);
+            margin-bottom: 2px;
+        }
+        .ejercicio-header-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 8px;
+            padding: 8px 0;
+            margin-bottom: 4px;
+        }
+        .ejercicio-header-row span {
+            font-size: 0.58rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        .ejercicio-header-row span:first-child { text-align: left; }
+        .notas-box {
+            background: rgba(232,255,0,0.05);
+            border-left: 3px solid var(--accent);
+            padding: 12px 16px;
+            margin-top: 16px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 300;
+            line-height: 1.6;
+        }
+        .notas-box strong { color: var(--white); font-weight: 600; }
+        .modal-rutina-detalle { max-width: 680px; }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <a href="../index.html" class="sidebar-logo">POWER<span>GYM</span></a>
+    <div class="sidebar-role">Entrenador</div>
+    <button class="nav-item active" onclick="showSection('inicio')"><span class="nav-icon">🏠</span> Inicio</button>
+    <button class="nav-item" onclick="showSection('clases')"><span class="nav-icon">🏋️</span> Mis Clases</button>
+    <button class="nav-item" onclick="showSection('alumnos')"><span class="nav-icon">👥</span> Alumnos</button>
+    <button class="nav-item" onclick="showSection('rutinas')"><span class="nav-icon">📋</span> Rutinas</button>
+    <button class="nav-item" onclick="showSection('perfil')"><span class="nav-icon">👤</span> Mi Perfil</button>
+    <div class="sidebar-bottom">
+        <div class="user-info">
+            <div class="user-avatar" id="avatar-initials">E</div>
+            <div>
+                <div class="user-name" id="sidebar-name">Entrenador</div>
+                <div class="user-email" id="sidebar-email">entrenador@powergym.com</div>
+            </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+    <div class="topbar">
+        <div class="page-title" id="page-title">MI PANEL</div>
+        <div class="topbar-right">
+            <span class="topbar-date" id="topbar-date"></span>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- ══ INICIO ══ -->
+        <div id="sec-inicio" class="section">
+
+            <!-- BANNER DISPONIBILIDAD -->
+            <div class="disp-banner disponible" id="disp-banner">
+                <div class="disp-left">
+                    <div class="disp-dot" id="disp-dot"></div>
+                    <div class="disp-text">
+                        <h3 id="disp-titulo">DISPONIBLE</h3>
+                        <p id="disp-desc">Los clientes pueden verte como entrenador disponible</p>
+                    </div>
+                </div>
+                <div class="toggle-grande" onclick="toggleDisponibilidad()">
+                    <span class="toggle-label" id="toggle-label">Disponible</span>
+                    <div class="toggle-track on" id="toggle-track"></div>
+                </div>
+            </div>
+
+            <!-- STATS -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon-bg">🏋️</div>
+                    <div class="stat-label">Mis Clases</div>
+                    <div class="stat-value" id="stat-clases">3</div>
+                    <div class="stat-sub">asignadas esta semana</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-bg">👥</div>
+                    <div class="stat-label">Alumnos</div>
+                    <div class="stat-value" id="stat-alumnos">—</div>
+                    <div class="stat-sub">inscritos en mis clases</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-bg">📋</div>
+                    <div class="stat-label">Rutinas</div>
+                    <div class="stat-value">3</div>
+                    <div class="stat-sub">activas creadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-bg">⭐</div>
+                    <div class="stat-label">Estado</div>
+                    <div class="stat-value" id="stat-estado" style="font-size:1.3rem;color:var(--green)">ACTIVO</div>
+                    <div class="stat-sub">en el sistema</div>
+                </div>
+            </div>
+
+            <!-- DOS COLUMNAS -->
+            <div class="two-col">
+                <div>
+                    <div class="section-header"><div class="section-title-sm">MIS CLASES HOY</div></div>
+                    <div id="clases-hoy"></div>
+                </div>
+                <div>
+                    <div class="section-header"><div class="section-title-sm">ÚLTIMOS ALUMNOS</div></div>
+                    <div id="alumnos-recientes"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ MIS CLASES ══ -->
+        <div id="sec-clases" class="section" style="display:none">
+            <div class="section-header">
+                <div class="section-title-sm">MIS CLASES ASIGNADAS</div>
+            </div>
+            <div id="todas-clases"></div>
+        </div>
+
+        <!-- ══ ALUMNOS ══ -->
+        <div id="sec-alumnos" class="section" style="display:none">
+            <div class="section-header">
+                <div class="section-title-sm">MIS ALUMNOS</div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr>
+                        <th>Nombre</th><th>Email</th><th>Clase</th><th>Inscripción</th><th>Estado</th>
+                    </tr></thead>
+                    <tbody id="tabla-alumnos">
+                        <tr><td colspan="5"><div class="empty-state"><div class="empty-icon">👥</div><p>Aún no tienes alumnos inscritos en tus clases.</p></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ══ RUTINAS ══ -->
+        <div id="sec-rutinas" class="section" style="display:none">
+            <div class="section-header">
+                <div class="section-title-sm">MIS RUTINAS</div>
+                <button class="btn-sm" onclick="abrirModalRutina()">+ Nueva Rutina</button>
+            </div>
+            <div id="rutinas-lista"></div>
+        </div>
+
+        <!-- ══ PERFIL ══ -->
+        <div id="sec-perfil" class="section" style="display:none">
+            <div class="section-header">
+                <div class="section-title-sm">MI PERFIL</div>
+            </div>
+            <div class="perfil-card">
+                <div class="perfil-header">
+                    <div class="perfil-avatar-lg" id="perfil-avatar">E</div>
+                    <div>
+                        <div class="perfil-name" id="perfil-nombre-display">Entrenador</div>
+                        <div class="perfil-spec" id="perfil-spec-display">Especialidad</div>
+                    </div>
+                </div>
+
+                <!-- DISPONIBILIDAD EN PERFIL -->
+                <div style="margin-bottom:24px;padding:20px;background:var(--gray2);display:flex;align-items:center;justify-content:space-between;">
+                    <div>
+                        <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">Estado actual</div>
+                        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px;" id="perfil-estado-texto">DISPONIBLE</div>
+                    </div>
+                    <div class="toggle-grande" onclick="toggleDisponibilidad()">
+                        <div class="toggle-track on" id="toggle-track-2"></div>
+                    </div>
+                </div>
+
+                <div class="perfil-grid">
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-input" id="perfil-input-nombre">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Apellido</label>
+                        <input type="text" class="form-input" id="perfil-input-apellido">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Correo electrónico</label>
+                        <input type="email" class="form-input" id="perfil-input-email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Teléfono</label>
+                        <input type="tel" class="form-input" id="perfil-input-telefono">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Especialidad</label>
+                    <input type="text" class="form-input" id="perfil-input-especialidad" placeholder="Ej: Fuerza y Musculación">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descripción / Bio</label>
+                    <textarea class="form-input" id="perfil-input-bio" placeholder="Cuéntale a los clientes sobre ti..."></textarea>
+                </div>
+                <button class="btn-guardar" onclick="guardarPerfil()">Guardar cambios</button>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- MODAL DETALLE RUTINA -->
+<div class="modal-overlay" id="modal-rutina-detalle">
+    <div class="modal modal-rutina-detalle">
+        <button class="modal-close" onclick="cerrarModal('modal-rutina-detalle')">✕</button>
+        <div id="rutina-detalle-content"></div>
+    </div>
+</div>
+
+<!-- MODAL RUTINA -->
+<div class="modal-overlay" id="modal-rutina">
+    <div class="modal">
+        <button class="modal-close" onclick="cerrarModal('modal-rutina')">✕</button>
+        <div class="modal-title" id="modal-rutina-titulo">NUEVA RUTINA</div>
+        <div class="modal-sub">Crea o edita una rutina de entrenamiento.</div>
+        <div class="form-group">
+            <label class="form-label">Nombre de la rutina</label>
+            <input type="text" class="form-input" id="rut-nombre" placeholder="Ej: Rutina de fuerza 5x5">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Nivel</label>
+            <select class="form-select" id="rut-nivel">
+                <option value="principiante">Principiante</option>
+                <option value="intermedio">Intermedio</option>
+                <option value="avanzado">Avanzado</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Tipo</label>
+            <select class="form-select" id="rut-tipo">
+                <option value="fuerza">Fuerza</option>
+                <option value="hipertrofia">Hipertrofia</option>
+                <option value="cardio">Cardio</option>
+                <option value="perdida_de_grasa">Pérdida de grasa</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Duración (semanas)</label>
+            <input type="number" class="form-input" id="rut-semanas" placeholder="4" min="1" max="52">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Descripción</label>
+            <textarea class="form-input" id="rut-desc" placeholder="Describe la rutina..."></textarea>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-sm" onclick="guardarRutina()">Guardar Rutina</button>
+            <button class="btn-sm-outline" onclick="cerrarModal('modal-rutina')">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<div class="alert-toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:3000/api';
+let usuario = {};
+let disponible = true;
+let entrenadorId = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const u = JSON.parse(localStorage.getItem('usuario') || '{}');
+    if (!u || u.rol !== 'entrenador') { window.location.href = 'login.html'; return; }
+    usuario = u;
+
+    document.getElementById('sidebar-name').textContent = u.nombre + ' ' + (u.apellido || '');
+    document.getElementById('sidebar-email').textContent = u.email;
+    document.getElementById('avatar-initials').textContent = u.nombre?.charAt(0).toUpperCase() || 'E';
+    document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('es-CO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    document.getElementById('perfil-avatar').textContent = u.nombre?.charAt(0).toUpperCase() || 'E';
+    document.getElementById('perfil-nombre-display').textContent = u.nombre + ' ' + (u.apellido || '');
+    document.getElementById('perfil-input-nombre').value = u.nombre || '';
+    document.getElementById('perfil-input-apellido').value = u.apellido || '';
+    document.getElementById('perfil-input-email').value = u.email || '';
+
+    cargarInicio();
+});
+
+function showSection(sec) {
+    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.getElementById('sec-' + sec).style.display = 'block';
+    event?.currentTarget?.classList.add('active');
+    const titles = { inicio:'Mi Panel', clases:'Mis Clases', alumnos:'Mis Alumnos', rutinas:'Rutinas', perfil:'Mi Perfil' };
+    document.getElementById('page-title').textContent = titles[sec] || sec;
+    if (sec === 'clases') cargarTodasClases();
+    if (sec === 'alumnos') cargarAlumnos();
+    if (sec === 'rutinas') cargarRutinasLista();
+}
+
+// ── INICIO ──
+async function cargarInicio() {
+    // Obtener perfil del entrenador desde la BD
+    try {
+        const res = await fetch(`${API}/entrenadores/usuario/${usuario.id}`);
+        if (res.ok) {
+            const entrenador = await res.json();
+            entrenadorId = entrenador.id;
+            disponible = entrenador.disponible == 1;
+
+            // Actualizar UI según disponibilidad guardada
+            actualizarUIDisponibilidad();
+
+            // Cargar info del perfil
+            document.getElementById('perfil-input-especialidad').value = entrenador.especialidad || '';
+            document.getElementById('perfil-input-bio').value = entrenador.descripcion || '';
+            document.getElementById('perfil-spec-display').textContent = entrenador.especialidad || 'Sin especialidad';
+        }
+    } catch {
+        console.log('No se pudo cargar perfil del entrenador');
+    }
+
+    // Cargar clases asignadas
+    await cargarClasesAsignadas();
+
+    cargarRutinasLista();
+}
+
+// ── TODAS LAS CLASES ──
+async function cargarTodasClases() {
+    await cargarClasesAsignadas(true);
+}
+
+async function cargarClasesAsignadas(enSeccion = false) {
+    const icons = { 'Cycling':'🚴', 'Box':'🥊', 'Aeróbicos':'💃' };
+    const contenedorInicio = document.getElementById('clases-hoy');
+    const contenedorSeccion = document.getElementById('todas-clases');
+
+    if (!entrenadorId) {
+        const msg = '<div class="empty-state"><div class="empty-icon">🏋️</div><p>No tienes clases asignadas aún.</p></div>';
+        if (contenedorInicio) contenedorInicio.innerHTML = msg;
+        if (contenedorSeccion) contenedorSeccion.innerHTML = msg;
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API}/clases/entrenador/${entrenadorId}`);
+        const clases = await res.json();
+
+        document.getElementById('stat-clases').textContent = clases.length;
+
+        const html = clases.length ? clases.map(c => `
+            <div class="horario-card" style="margin-bottom:10px">
+                <div class="horario-icon">${icons[c.nombre] || '🏋️'}</div>
+                <div style="flex:1">
+                    <div class="horario-name">${c.nombre}</div>
+                    <div class="horario-info">
+                        ${c.dia_semana} · ${c.hora_inicio?.slice(0,5)} — ${c.hora_fin?.slice(0,5)} · 
+                        Capacidad: ${c.capacidad_maxima} personas
+                    </div>
+                </div>
+                <div class="horario-dia">
+                    <div class="horario-dia-nombre">${c.dia_semana}</div>
+                    <div class="horario-hora">${c.hora_inicio?.slice(0,5)}</div>
+                </div>
+            </div>`).join('')
+        : '<div class="empty-state"><div class="empty-icon">🏋️</div><p>No tienes clases asignadas aún.</p></div>';
+
+        if (!enSeccion && contenedorInicio) contenedorInicio.innerHTML = html;
+        if (contenedorSeccion) contenedorSeccion.innerHTML = html;
+
+    } catch {
+        const msg = '<div class="empty-state"><p>Error al cargar clases</p></div>';
+        if (!enSeccion && contenedorInicio) contenedorInicio.innerHTML = msg;
+        if (contenedorSeccion) contenedorSeccion.innerHTML = msg;
+    }
+}
+
+// ── ALUMNOS ──
+async function cargarAlumnos() {
+    const tbody = document.getElementById('tabla-alumnos');
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">⏳</div><p>Cargando alumnos...</p></div></td></tr>';
+
+    if (!entrenadorId) {
+        tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">👥</div><p>No tienes alumnos inscritos aún.</p></div></td></tr>';
+        return;
+    }
+
+    const badges = { 'Cycling':'badge-cycling', 'Box':'badge-box', 'Aeróbicos':'badge-aerobicos' };
+
+    try {
+        const res = await fetch(`${API}/clases/alumnos/${entrenadorId}`);
+        const alumnos = await res.json();
+
+        document.getElementById('stat-alumnos').textContent = alumnos.length;
+
+        if (!alumnos.length) {
+            tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">👥</div><p>Aún no tienes alumnos inscritos en tus clases.</p></div></td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = alumnos.map(a => `
+            <tr>
+                <td>
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <div class="alumno-avatar" style="width:32px;height:32px;font-size:0.9rem">
+                            ${a.nombre?.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div style="font-weight:600;font-size:0.85rem">${a.nombre} ${a.apellido}</div>
+                            <div style="font-size:0.72rem;color:var(--text-muted)">${a.telefono || '—'}</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="color:var(--text-muted);font-size:0.8rem">${a.email}</td>
+                <td>
+                    <span class="badge ${badges[a.clase_nombre] || 'badge-active'}">
+                        ${a.clase_nombre}
+                    </span>
+                    <div style="font-size:0.68rem;color:var(--text-muted);margin-top:3px">
+                        ${a.dia_semana} · ${a.hora_inicio?.slice(0,5)}
+                    </div>
+                </td>
+                <td style="color:var(--text-muted);font-size:0.78rem">
+                    ${new Date(a.fecha_inscripcion).toLocaleDateString('es-CO')}
+                </td>
+                <td><span class="badge badge-active">Inscrito</span></td>
+            </tr>`).join('');
+
+        // Actualizar también la sección de alumnos recientes en inicio
+        document.getElementById('alumnos-recientes').innerHTML = alumnos.slice(0,3).map(a => `
+            <div class="alumno-card">
+                <div class="alumno-avatar">${a.nombre?.charAt(0).toUpperCase()}</div>
+                <div>
+                    <div class="alumno-name">${a.nombre} ${a.apellido}</div>
+                    <div class="alumno-info">${a.clase_nombre} · ${a.dia_semana}</div>
+                </div>
+                <div class="alumno-badge"><span class="badge badge-active">Activo</span></div>
+            </div>`).join('');
+
+    } catch {
+        tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><p>❌ Error al cargar alumnos</p></div></td></tr>';
+    }
+}
+
+// ── DISPONIBILIDAD ──
+async function toggleDisponibilidad() {
+    disponible = !disponible;
+    actualizarUIDisponibilidad();
+
+    // Guardar en la base de datos
+    if (entrenadorId) {
+        try {
+            const res = await fetch(`${API}/entrenadores/disponibilidad/${entrenadorId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ disponible: disponible ? 1 : 0 })
+            });
+            if (res.ok) {
+                showToast(disponible ? '✅ Ahora estás disponible' : '⚠️ Cambiaste a no disponible');
+            } else {
+                showToast('❌ Error al guardar disponibilidad');
+            }
+        } catch {
+            showToast('❌ Error de conexión');
+        }
+    } else {
+        showToast(disponible ? '✅ Disponible (simulado)' : '⚠️ No disponible (simulado)');
+    }
+}
+
+function actualizarUIDisponibilidad() {
+    const banner  = document.getElementById('disp-banner');
+    const titulo  = document.getElementById('disp-titulo');
+    const desc    = document.getElementById('disp-desc');
+    const label   = document.getElementById('toggle-label');
+    const track   = document.getElementById('toggle-track');
+    const track2  = document.getElementById('toggle-track-2');
+    const estadoTexto = document.getElementById('perfil-estado-texto');
+    const statEstado  = document.getElementById('stat-estado');
+
+    if (disponible) {
+        banner.className          = 'disp-banner disponible';
+        titulo.textContent        = 'DISPONIBLE';
+        desc.textContent          = 'Los clientes pueden verte como entrenador disponible';
+        label.textContent         = 'Disponible';
+        label.style.color         = 'var(--green)';
+        track?.classList.add('on');
+        track2?.classList.add('on');
+        if (estadoTexto) estadoTexto.textContent = 'DISPONIBLE';
+        if (statEstado)  { statEstado.textContent = 'ACTIVO'; statEstado.style.color = 'var(--green)'; }
+    } else {
+        banner.className          = 'disp-banner no-disponible';
+        titulo.textContent        = 'NO DISPONIBLE';
+        desc.textContent          = 'No aparecerás como disponible para los clientes';
+        label.textContent         = 'No disponible';
+        label.style.color         = 'var(--red)';
+        track?.classList.remove('on');
+        track2?.classList.remove('on');
+        if (estadoTexto) estadoTexto.textContent = 'NO DISPONIBLE';
+        if (statEstado)  { statEstado.textContent = 'INACTIVO'; statEstado.style.color = 'var(--red)'; }
+    }
+}
+
+// ── RUTINAS ──
+// ── BASE DE DATOS DE RUTINAS ──
+const RUTINAS_DB = {
+    fuerza: {
+        principiante: {
+            descripcion: 'Rutina de fuerza para principiantes enfocada en movimientos básicos compuestos. Ideal para construir una base sólida.',
+            semanas: 4,
+            notas: 'Descansa 2-3 minutos entre series. Prioriza la técnica sobre el peso. Aumenta el peso un 5% cada semana si completas todas las repeticiones.',
+            dias: [
+                {
+                    nombre: 'Día A — Tren Superior',
+                    tipo: 'Empuje + Jalón',
+                    ejercicios: [
+                        { nombre: 'Press banca con barra', series: 3, reps: '8-10', descanso: '2 min', nota: 'Agarre a la anchura de hombros' },
+                        { nombre: 'Remo con barra', series: 3, reps: '8-10', descanso: '2 min', nota: 'Espalda recta' },
+                        { nombre: 'Press militar mancuernas', series: 3, reps: '10-12', descanso: '90 seg', nota: 'Controla el movimiento' },
+                        { nombre: 'Jalón al pecho', series: 3, reps: '10-12', descanso: '90 seg', nota: 'Codos hacia abajo' },
+                        { nombre: 'Curl bíceps barra', series: 2, reps: '12', descanso: '60 seg', nota: '' },
+                        { nombre: 'Extensión tríceps polea', series: 2, reps: '12', descanso: '60 seg', nota: '' },
+                    ]
+                },
+                {
+                    nombre: 'Día B — Tren Inferior',
+                    tipo: 'Piernas + Core',
+                    ejercicios: [
+                        { nombre: 'Sentadilla libre', series: 3, reps: '8-10', descanso: '2 min', nota: 'Rodillas alineadas con puntas' },
+                        { nombre: 'Peso muerto rumano', series: 3, reps: '10', descanso: '2 min', nota: 'Cadera hacia atrás' },
+                        { nombre: 'Prensa de piernas', series: 3, reps: '12', descanso: '90 seg', nota: '' },
+                        { nombre: 'Extensión cuádriceps', series: 3, reps: '12-15', descanso: '60 seg', nota: '' },
+                        { nombre: 'Curl femoral', series: 3, reps: '12-15', descanso: '60 seg', nota: '' },
+                        { nombre: 'Plancha abdominal', series: 3, reps: '30 seg', descanso: '45 seg', nota: 'Cuerpo recto' },
+                    ]
+                },
+                {
+                    nombre: 'Día C — Cuerpo Completo',
+                    tipo: 'Full Body',
+                    ejercicios: [
+                        { nombre: 'Sentadilla goblet', series: 3, reps: '10', descanso: '90 seg', nota: '' },
+                        { nombre: 'Press banca mancuernas', series: 3, reps: '10', descanso: '90 seg', nota: '' },
+                        { nombre: 'Peso muerto', series: 3, reps: '8', descanso: '2 min', nota: 'Movimiento fundamental' },
+                        { nombre: 'Remo en polea baja', series: 3, reps: '12', descanso: '90 seg', nota: '' },
+                        { nombre: 'Zancadas alternas', series: 2, reps: '10 c/u', descanso: '60 seg', nota: '' },
+                        { nombre: 'Abdominales en banco', series: 3, reps: '15', descanso: '45 seg', nota: '' },
+                    ]
+                }
+            ]
+        },
+        intermedio: {
+            descripcion: 'Programa de fuerza intermedio con periodización lineal. Divide el trabajo por grupos musculares para mayor volumen.',
+            semanas: 6,
+            notas: 'Progresión de carga semanal obligatoria. Descansa 3 minutos en ejercicios compuestos. Registra tus pesos en cada sesión.',
+            dias: [
+                {
+                    nombre: 'Día 1 — Pecho y Tríceps',
+                    tipo: 'Empuje',
+                    ejercicios: [
+                        { nombre: 'Press banca barra', series: 4, reps: '5', descanso: '3 min', nota: 'Ejercicio principal — máxima carga' },
+                        { nombre: 'Press inclinado mancuernas', series: 3, reps: '8', descanso: '2 min', nota: '' },
+                        { nombre: 'Aperturas en polea', series: 3, reps: '12', descanso: '90 seg', nota: '' },
+                        { nombre: 'Press francés', series: 3, reps: '10', descanso: '90 seg', nota: '' },
+                        { nombre: 'Fondos en paralelas', series: 3, reps: '10-12', descanso: '90 seg', nota: '' },
+                    ]
+                },
+                {
+                    nombre: 'Día 2 — Espalda y Bíceps',
+                    tipo: 'Jalón',
+                    ejercicios: [
+                        { nombre: 'Peso muerto', series: 4, reps: '5', descanso: '3 min', nota: 'Ejercicio principal — máxima carga' },
+                        { nombre: 'Dominadas con lastre', series: 3, reps: '6-8', descanso: '2 min', nota: '' },
+                        { nombre: 'Remo Pendlay', series: 4, reps: '6', descanso: '2 min', nota: '' },
+                        { nombre: 'Curl martillo mancuernas', series: 3, reps: '10', descanso: '90 seg', nota: '' },
+                        { nombre: 'Curl concentrado', series: 2, reps: '12', descanso: '60 seg', nota: '' },
+                    ]
+                },
+                {
+                    nombre: 'Día 3 — Piernas',
+                    tipo: 'Tren Inferior',
+                    ejercicios: [
+                        { nombre: 'Sentadilla trasera', series: 5, reps: '5', descanso: '3 min', nota: 'Ejercicio principal — máxima carga' },
+                        { nombre: 'Sentadilla frontal', series: 3, reps: '6', descanso: '2 min', nota: '' },
+                        { nombre: 'Prensa 45°', series: 3, reps: '10', descanso: '2 min', nota: '' },
+                        { nombre: 'Peso muerto rumano', series: 3, reps: '8', descanso: '2 min', nota: '' },
+                        { nombre: 'Elevación de gemelos', series: 4, reps: '15', descanso: '60 seg', nota: '' },
+                    ]
+                },
+                {
+                    nombre: 'Día 4 — Hombros y Core',
+                    tipo: 'Empuje + Core',
+                    ejercicios: [
+                        { nombre: 'Press militar barra', series: 4, reps: '5', descanso: '3 min', nota: 'Ejercicio principal' },
+                        { nombre: 'Elevaciones laterales', series: 4, reps: '12', descanso: '60 seg', nota: '' },
+                        { nombre: 'Face pull', series: 3, reps: '15', descanso: '60 seg', nota: 'Salud del manguito rotador' },
+                        { nombre: 'Plancha con peso', series: 3, reps: '45 seg', descanso: '60 seg', nota: '' },
+                        { nombre: 'Rueda abdominal', series: 3, reps: '8-10', descanso: '90 seg', nota: '' },
+                    ]
+                }
+            ]
+        },
+        avanzado: {
+            descripcion: 'Programa avanzado de fuerza máxima con periodización ondulante. Para atletas con más de 2 años de entrenamiento.',
+            semanas: 8,
+            notas: 'Periodización ondulante diaria. Sesiones de alta, media y baja intensidad alternadas. Test de 1RM cada 4 semanas.',
+            dias: [
+                { nombre: 'Día 1 — Fuerza Máxima Pecho', tipo: 'Alta Intensidad', ejercicios: [
+                    { nombre: 'Press banca barra', series: 5, reps: '3', descanso: '4 min', nota: '85-90% de 1RM' },
+                    { nombre: 'Press banca agarre cerrado', series: 4, reps: '5', descanso: '3 min', nota: '80% de 1RM' },
+                    { nombre: 'Press inclinado barra', series: 3, reps: '6', descanso: '2 min', nota: '' },
+                    { nombre: 'Fondos lastrados', series: 3, reps: '6-8', descanso: '2 min', nota: '' },
+                ]},
+                { nombre: 'Día 2 — Fuerza Máxima Espalda', tipo: 'Alta Intensidad', ejercicios: [
+                    { nombre: 'Peso muerto convencional', series: 5, reps: '3', descanso: '4 min', nota: '85-90% de 1RM' },
+                    { nombre: 'Dominadas lastradas', series: 4, reps: '5', descanso: '3 min', nota: '' },
+                    { nombre: 'Remo con barra Pendlay', series: 4, reps: '5', descanso: '3 min', nota: '' },
+                    { nombre: 'Remo unilateral mancuerna', series: 3, reps: '8', descanso: '90 seg', nota: '' },
+                ]},
+                { nombre: 'Día 3 — Fuerza Máxima Piernas', tipo: 'Alta Intensidad', ejercicios: [
+                    { nombre: 'Sentadilla trasera', series: 5, reps: '3', descanso: '4 min', nota: '85-90% de 1RM' },
+                    { nombre: 'Sentadilla pausa', series: 3, reps: '3', descanso: '3 min', nota: '70% de 1RM' },
+                    { nombre: 'Peso muerto rumano', series: 4, reps: '5', descanso: '2 min', nota: '' },
+                    { nombre: 'Step up con mancuernas', series: 3, reps: '8 c/u', descanso: '2 min', nota: '' },
+                ]},
+                { nombre: 'Día 4 — Fuerza Hombros y Accesorios', tipo: 'Media Intensidad', ejercicios: [
+                    { nombre: 'Press militar barra', series: 5, reps: '5', descanso: '3 min', nota: '80% de 1RM' },
+                    { nombre: 'Push press', series: 3, reps: '5', descanso: '2 min', nota: '' },
+                    { nombre: 'Elevaciones laterales', series: 4, reps: '15', descanso: '60 seg', nota: '' },
+                    { nombre: 'Face pull', series: 3, reps: '20', descanso: '60 seg', nota: 'Prevención lesiones' },
+                ]}
+            ]
+        }
+    },
+    hipertrofia: {
+        principiante: {
+            descripcion: 'Rutina de hipertrofia para principiantes con volumen moderado y énfasis en la conexión mente-músculo.',
+            semanas: 4,
+            notas: 'Enfócate en sentir el músculo trabajar. Descansa 60-90 segundos entre series. El objetivo es llegar al fallo en las últimas repeticiones.',
+            dias: [
+                { nombre: 'Día 1 — Pecho y Bíceps', tipo: 'Empuje + Curl', ejercicios: [
+                    { nombre: 'Press banca mancuernas', series: 4, reps: '10-12', descanso: '90 seg', nota: 'Rango completo de movimiento' },
+                    { nombre: 'Press inclinado mancuernas', series: 3, reps: '12', descanso: '75 seg', nota: '' },
+                    { nombre: 'Aperturas con mancuernas', series: 3, reps: '14', descanso: '60 seg', nota: 'Estiramiento profundo' },
+                    { nombre: 'Crossover en polea', series: 3, reps: '15', descanso: '60 seg', nota: '' },
+                    { nombre: 'Curl bíceps alternado', series: 3, reps: '12 c/u', descanso: '60 seg', nota: '' },
+                    { nombre: 'Curl martillo', series: 2, reps: '15', descanso: '60 seg', nota: '' },
+                ]},
+                { nombre: 'Día 2 — Espalda y Tríceps', tipo: 'Jalón + Extensión', ejercicios: [
+                    { nombre: 'Jalón al pecho agarre ancho', series: 4, reps: '10-12', descanso: '90 seg', nota: '' },
+                    { nombre: 'Remo en polea baja', series: 4, reps: '12', descanso: '90 seg', nota: 'Pecho hacia adelante' },
+                    { nombre: 'Remo unilateral mancuerna', series: 3, reps: '12 c/u', descanso: '75 seg', nota: '' },
+                    { nombre: 'Extensión tríceps polea alta', series: 3, reps: '14', descanso: '60 seg', nota: '' },
+                    { nombre: 'Press tríceps polea', series: 3, reps: '15', descanso: '60 seg', nota: '' },
+                ]},
+                { nombre: 'Día 3 — Piernas', tipo: 'Tren Inferior', ejercicios: [
+                    { nombre: 'Sentadilla libre', series: 4, reps: '10-12', descanso: '2 min', nota: '' },
+                    { nombre: 'Prensa de piernas', series: 4, reps: '15', descanso: '90 seg', nota: 'Pies a la anchura de hombros' },
+                    { nombre: 'Extensión cuádriceps', series: 3, reps: '15-20', descanso: '60 seg', nota: 'Pausa en contracción' },
+                    { nombre: 'Curl femoral tumbado', series: 3, reps: '15', descanso: '60 seg', nota: '' },
+                    { nombre: 'Elevación de gemelos de pie', series: 4, reps: '20', descanso: '45 seg', nota: '' },
+                ]},
+            ]
+        },
+        intermedio: {
+            descripcion: 'Programa de hipertrofia intermedio con técnicas avanzadas: superseries, drop sets y técnicas de intensidad.',
+            semanas: 8,
+            notas: 'Usa técnicas de intensidad en el último set de cada ejercicio. Nutrición: 1.8-2.2g de proteína por kg de peso corporal.',
+            dias: [
+                { nombre: 'Día 1 — Pecho', tipo: 'Volumen Alto', ejercicios: [
+                    { nombre: 'Press banca barra', series: 4, reps: '8-10', descanso: '2 min', nota: 'Último set: drop set' },
+                    { nombre: 'Press inclinado barra', series: 4, reps: '10', descanso: '90 seg', nota: '' },
+                    { nombre: 'Press declinado mancuernas', series: 3, reps: '12', descanso: '75 seg', nota: '' },
+                    { nombre: 'Aperturas en polea cruzada', series: 3, reps: '15', descanso: '60 seg', nota: 'Superserie con siguiente' },
+                    { nombre: 'Fondos en paralelas', series: 3, reps: 'Fallo', descanso: '60 seg', nota: 'Superserie con anterior' },
+                ]},
+                { nombre: 'Día 2 — Espalda', tipo: 'Volumen Alto', ejercicios: [
+                    { nombre: 'Dominadas', series: 4, reps: 'Máx', descanso: '2 min', nota: 'Con lastre si superas 10 reps' },
+                    { nombre: 'Remo con barra', series: 4, reps: '8-10', descanso: '2 min', nota: 'Último set: rest-pause' },
+                    { nombre: 'Jalón agarre neutro', series: 3, reps: '12', descanso: '90 seg', nota: '' },
+                    { nombre: 'Remo en máquina Hammer', series: 3, reps: '12-15', descanso: '75 seg', nota: '' },
+                    { nombre: 'Pull over en polea', series: 3, reps: '15', descanso: '60 seg', nota: 'Estiramiento del dorsal' },
+                ]},
+                { nombre: 'Día 3 — Hombros', tipo: 'Volumen Medio', ejercicios: [
+                    { nombre: 'Press militar mancuernas', series: 4, reps: '10', descanso: '2 min', nota: '' },
+                    { nombre: 'Elevaciones laterales', series: 5, reps: '15-20', descanso: '45 seg', nota: 'Último 2 sets: drop set' },
+                    { nombre: 'Pájaro mancuernas', series: 3, reps: '15', descanso: '60 seg', nota: 'Posterior del hombro' },
+                    { nombre: 'Face pull en polea', series: 3, reps: '20', descanso: '45 seg', nota: 'Rotación externa' },
+                ]},
+                { nombre: 'Día 4 — Piernas', tipo: 'Volumen Alto', ejercicios: [
+                    { nombre: 'Sentadilla trasera', series: 5, reps: '10', descanso: '2 min', nota: 'Último set: 20 reps' },
+                    { nombre: 'Prensa inclinada 45°', series: 4, reps: '15', descanso: '90 seg', nota: '' },
+                    { nombre: 'Hack squat', series: 3, reps: '12', descanso: '90 seg', nota: '' },
+                    { nombre: 'Curl femoral sentado', series: 4, reps: '12-15', descanso: '75 seg', nota: '' },
+                    { nombre: 'Extensión cuádriceps', series: 3, reps: '20', descanso: '60 seg', nota: 'Pausa 2 seg en contracción' },
+                ]},
+                { nombre: 'Día 5 — Brazos', tipo: 'Bíceps + Tríceps', ejercicios: [
+                    { nombre: 'Curl bíceps barra EZ', series: 4, reps: '10', descanso: '90 seg', nota: '' },
+                    { nombre: 'Press francés barra EZ', series: 4, reps: '10', descanso: '90 seg', nota: 'Superserie con anterior' },
+                    { nombre: 'Curl predicador mancuerna', series: 3, reps: '12', descanso: '75 seg', nota: '' },
+                    { nombre: 'Extensión sobre cabeza', series: 3, reps: '12', descanso: '75 seg', nota: '' },
+                    { nombre: 'Curl concentrado', series: 2, reps: '15', descanso: '45 seg', nota: '' },
+                ]},
+            ]
+        },
+        avanzado: {
+            descripcion: 'Rutina avanzada de hipertrofia con técnicas de alto volumen: GVT modificado, mecánico drop set y métodos de densidad.',
+            semanas: 12,
+            notas: 'Volumen total semanal: 15-20 series por grupo muscular. Deload cada 4 semanas. Monitorea la recuperación.',
+            dias: [
+                { nombre: 'Día 1 — Pecho/Hombros/Tríceps', tipo: 'Empuje', ejercicios: [
+                    { nombre: 'Press banca barra', series: 5, reps: '6-8', descanso: '2 min', nota: '75% 1RM' },
+                    { nombre: 'Press inclinado mancuernas', series: 4, reps: '10-12', descanso: '90 seg', nota: '' },
+                    { nombre: 'Press militar mancuernas', series: 4, reps: '10', descanso: '90 seg', nota: '' },
+                    { nombre: 'Elevaciones laterales', series: 4, reps: '15', descanso: '45 seg', nota: 'Drop set en último set' },
+                    { nombre: 'Extensión tríceps cuerda', series: 4, reps: '15', descanso: '60 seg', nota: '' },
+                ]},
+                { nombre: 'Día 2 — Espalda/Bíceps', tipo: 'Jalón', ejercicios: [
+                    { nombre: 'Peso muerto', series: 4, reps: '6', descanso: '3 min', nota: '80% 1RM' },
+                    { nombre: 'Dominadas lastradas', series: 4, reps: '8', descanso: '2 min', nota: '' },
+                    { nombre: 'Remo con barra', series: 4, reps: '8-10', descanso: '90 seg', nota: '' },
+                    { nombre: 'Curl bíceps barra', series: 4, reps: '10', descanso: '75 seg', nota: '' },
+                    { nombre: 'Curl inclinado mancuernas', series: 3, reps: '12', descanso: '60 seg', nota: 'Estiramiento completo' },
+                ]},
+                { nombre: 'Día 3 — Piernas', tipo: 'Tren Inferior', ejercicios: [
+                    { nombre: 'Sentadilla trasera', series: 5, reps: '8', descanso: '2 min', nota: '75% 1RM' },
+                    { nombre: 'Sentadilla búlgara', series: 4, reps: '10 c/u', descanso: '90 seg', nota: '' },
+                    { nombre: 'Peso muerto piernas rígidas', series: 4, reps: '10', descanso: '90 seg', nota: '' },
+                    { nombre: 'Leg press pie alto', series: 3, reps: '15', descanso: '75 seg', nota: 'Mayor activación isquio' },
+                    { nombre: 'Gemelo de pie + sentado', series: 5, reps: '15+15', descanso: '60 seg', nota: 'Superserie' },
+                ]},
+            ]
+        }
+    },
+    cardio: {
+        principiante: {
+            descripcion: 'Programa cardiovascular para principiantes con progresión gradual de intensidad y duración.',
+            semanas: 4,
+            notas: 'Mantén la frecuencia cardíaca entre el 60-70% de tu FCmax. FCmax = 220 - edad. Hidratación constante.',
+            dias: [
+                { nombre: 'Día 1 — Cardio Suave', tipo: 'Zona 2', ejercicios: [
+                    { nombre: 'Caminata rápida en cinta', series: 1, reps: '20 min', descanso: '—', nota: 'Velocidad 5-6 km/h' },
+                    { nombre: 'Bicicleta estática', series: 1, reps: '15 min', descanso: '—', nota: 'Resistencia baja' },
+                    { nombre: 'Estiramiento dinámico', series: 1, reps: '10 min', descanso: '—', nota: 'Al finalizar' },
+                ]},
+                { nombre: 'Día 2 — Intervalos Básicos', tipo: 'HIIT Suave', ejercicios: [
+                    { nombre: 'Calentamiento cinta', series: 1, reps: '5 min', descanso: '—', nota: 'Caminata' },
+                    { nombre: 'Trote 1 min + Caminata 2 min', series: 6, reps: 'x6 veces', descanso: '—', nota: 'Total 18 minutos' },
+                    { nombre: 'Enfriamiento', series: 1, reps: '5 min', descanso: '—', nota: 'Caminata lenta' },
+                ]},
+                { nombre: 'Día 3 — Cardio Moderado', tipo: 'Estado Estable', ejercicios: [
+                    { nombre: 'Elíptica', series: 1, reps: '30 min', descanso: '—', nota: 'Resistencia media' },
+                    { nombre: 'Sentadillas sin peso', series: 3, reps: '15', descanso: '60 seg', nota: 'Al finalizar el cardio' },
+                ]},
+            ]
+        },
+        intermedio: {
+            descripcion: 'Programa cardiovascular intermedio combinando HIIT, estado estable y circuitos funcionales.',
+            semanas: 6,
+            notas: 'Alterna entre alta y baja intensidad para evitar sobreentrenamiento. Mínimo 8 horas de sueño.',
+            dias: [
+                { nombre: 'Día 1 — HIIT', tipo: 'Alta Intensidad', ejercicios: [
+                    { nombre: 'Calentamiento', series: 1, reps: '5 min', descanso: '—', nota: 'Trote suave' },
+                    { nombre: 'Sprint 30 seg + Trote 90 seg', series: 8, reps: 'x8', descanso: '—', nota: 'Sprint al 90% FCmax' },
+                    { nombre: 'Enfriamiento', series: 1, reps: '5 min', descanso: '—', nota: '' },
+                ]},
+                { nombre: 'Día 2 — Circuito Funcional', tipo: 'Funcional', ejercicios: [
+                    { nombre: 'Burpees', series: 4, reps: '10', descanso: '30 seg', nota: '' },
+                    { nombre: 'Mountain climbers', series: 4, reps: '20 c/u', descanso: '30 seg', nota: '' },
+                    { nombre: 'Jump squat', series: 4, reps: '12', descanso: '30 seg', nota: '' },
+                    { nombre: 'Box jumps', series: 3, reps: '8', descanso: '45 seg', nota: '' },
+                    { nombre: 'Battle ropes', series: 3, reps: '30 seg', descanso: '30 seg', nota: '' },
+                ]},
+                { nombre: 'Día 3 — Cardio Estado Estable', tipo: 'Zona 2-3', ejercicios: [
+                    { nombre: 'Carrera continua', series: 1, reps: '40-45 min', descanso: '—', nota: '65-75% FCmax' },
+                    { nombre: 'Core post-cardio', series: 3, reps: '45 seg', descanso: '30 seg', nota: 'Plancha frontal y lateral' },
+                ]},
+            ]
+        },
+        avanzado: {
+            descripcion: 'Programa cardiovascular avanzado con periodización específica para mejorar el VO2max y la resistencia.',
+            semanas: 8,
+            notas: 'Monitoriza tu VO2max y frecuencia cardíaca en reposo semanalmente. Nutrición pre-entrenamiento fundamental.',
+            dias: [
+                { nombre: 'Día 1 — Intervalos VO2max', tipo: 'Alta Intensidad', ejercicios: [
+                    { nombre: 'Calentamiento progresivo', series: 1, reps: '10 min', descanso: '—', nota: 'Aumenta ritmo progresivamente' },
+                    { nombre: 'Intervalos 4 min al 95% + 3 min rec.', series: 5, reps: 'x5', descanso: '3 min', nota: 'Método Noruego' },
+                    { nombre: 'Enfriamiento activo', series: 1, reps: '10 min', descanso: '—', nota: '' },
+                ]},
+                { nombre: 'Día 2 — Tempo Run', tipo: 'Umbral Anaeróbico', ejercicios: [
+                    { nombre: 'Calentamiento', series: 1, reps: '10 min', descanso: '—', nota: '' },
+                    { nombre: 'Carrera al umbral anaeróbico', series: 1, reps: '25-30 min', descanso: '—', nota: '85-88% FCmax' },
+                    { nombre: 'Enfriamiento', series: 1, reps: '10 min', descanso: '—', nota: '' },
+                ]},
+                { nombre: 'Día 3 — Circuito Potencia', tipo: 'Potencia Aeróbica', ejercicios: [
+                    { nombre: 'Sprints en escalera', series: 6, reps: '15 seg', descanso: '45 seg', nota: 'Máxima velocidad' },
+                    { nombre: 'Saltos de cajón', series: 5, reps: '5', descanso: '60 seg', nota: 'Cajón alto 60-80cm' },
+                    { nombre: 'Kettlebell swing', series: 5, reps: '20', descanso: '45 seg', nota: '' },
+                    { nombre: 'Sled push', series: 4, reps: '20 metros', descanso: '90 seg', nota: '' },
+                ]},
+            ]
+        }
+    },
+    perdida_de_grasa: {
+        principiante: {
+            descripcion: 'Programa de pérdida de grasa para principiantes combinando fuerza básica y cardio. Déficit calórico moderado recomendado.',
+            semanas: 6,
+            notas: 'Déficit calórico de 300-500 kcal diarias. Prioriza proteína: mínimo 2g por kg de peso. Cardio en ayunas opcional.',
+            dias: [
+                { nombre: 'Día 1 — Circuito Cuerpo Completo', tipo: 'Metabólico', ejercicios: [
+                    { nombre: 'Sentadilla con mancuernas', series: 3, reps: '15', descanso: '45 seg', nota: '' },
+                    { nombre: 'Press banca mancuernas', series: 3, reps: '12', descanso: '45 seg', nota: '' },
+                    { nombre: 'Remo en polea', series: 3, reps: '15', descanso: '45 seg', nota: '' },
+                    { nombre: 'Zancadas', series: 3, reps: '12 c/u', descanso: '45 seg', nota: '' },
+                    { nombre: 'Plancha', series: 3, reps: '30 seg', descanso: '30 seg', nota: '' },
+                    { nombre: 'Caminata rápida post', series: 1, reps: '20 min', descanso: '—', nota: '' },
+                ]},
+                { nombre: 'Día 2 — Cardio HIIT', tipo: 'Quema de grasa', ejercicios: [
+                    { nombre: 'Jumping jacks', series: 1, reps: '3 min', descanso: '—', nota: 'Calentamiento' },
+                    { nombre: 'Burpees', series: 3, reps: '10', descanso: '60 seg', nota: '' },
+                    { nombre: 'Sentadillas con salto', series: 3, reps: '12', descanso: '60 seg', nota: '' },
+                    { nombre: 'Skipping', series: 3, reps: '30 seg', descanso: '30 seg', nota: '' },
+                    { nombre: 'Trote en cinta', series: 1, reps: '20 min', descanso: '—', nota: 'Ritmo moderado' },
+                ]},
+                { nombre: 'Día 3 — Fuerza + Cardio', tipo: 'Híbrido', ejercicios: [
+                    { nombre: 'Peso muerto con mancuernas', series: 3, reps: '12', descanso: '60 seg', nota: '' },
+                    { nombre: 'Press militar mancuernas', series: 3, reps: '12', descanso: '60 seg', nota: '' },
+                    { nombre: 'Dominadas asistidas', series: 3, reps: 'Máx', descanso: '90 seg', nota: '' },
+                    { nombre: 'Bicicleta estática HIIT', series: 1, reps: '20 min', descanso: '—', nota: '1 min fuerte / 2 min suave' },
+                ]},
+            ]
+        },
+        intermedio: {
+            descripcion: 'Programa intermedio de recomposición corporal. Maximiza la pérdida de grasa preservando la masa muscular.',
+            semanas: 8,
+            notas: 'Cicla los carbohidratos: más en días de entrenamiento, menos en días de descanso. Cardio en ayunas 3 días a la semana.',
+            dias: [
+                { nombre: 'Día 1 — Tren Superior Metabólico', tipo: 'Fuerza + Metabólico', ejercicios: [
+                    { nombre: 'Press banca + Remo (superserie)', series: 4, reps: '10+10', descanso: '60 seg', nota: 'Sin descanso entre ejercicios' },
+                    { nombre: 'Press inclinado + Jalón (superserie)', series: 3, reps: '12+12', descanso: '60 seg', nota: '' },
+                    { nombre: 'Aperturas + Face pull (superserie)', series: 3, reps: '15+15', descanso: '45 seg', nota: '' },
+                    { nombre: 'HIIT en cinta', series: 1, reps: '15 min', descanso: '—', nota: '30 seg sprint / 60 seg trote' },
+                ]},
+                { nombre: 'Día 2 — Tren Inferior Metabólico', tipo: 'Fuerza + Cardio', ejercicios: [
+                    { nombre: 'Sentadilla + Prensa (superserie)', series: 4, reps: '10+15', descanso: '75 seg', nota: '' },
+                    { nombre: 'Peso muerto + Extensión (superserie)', series: 3, reps: '10+15', descanso: '60 seg', nota: '' },
+                    { nombre: 'Zancadas en movimiento', series: 3, reps: '20 metros', descanso: '60 seg', nota: '' },
+                    { nombre: 'Elíptica estado estable', series: 1, reps: '25 min', descanso: '—', nota: '70% FCmax' },
+                ]},
+                { nombre: 'Día 3 — Circuito Metabólico Total', tipo: 'Alta Intensidad', ejercicios: [
+                    { nombre: 'Thruster (sentadilla+press)', series: 4, reps: '12', descanso: '60 seg', nota: 'Con mancuernas' },
+                    { nombre: 'Peso muerto + Remo (combo)', series: 4, reps: '8+8', descanso: '75 seg', nota: '' },
+                    { nombre: 'Clean and press', series: 3, reps: '8', descanso: '90 seg', nota: '' },
+                    { nombre: 'Farmer walk', series: 3, reps: '30 metros', descanso: '60 seg', nota: '' },
+                ]},
+            ]
+        },
+        avanzado: {
+            descripcion: 'Programa avanzado de cutting. Alta frecuencia, volumen modulado y cardio estratégico para máxima definición.',
+            semanas: 10,
+            notas: 'Deficit calórico agresivo: 500-700 kcal. Proteína: 2.5g/kg. Monitorea la fuerza como indicador de pérdida muscular.',
+            dias: [
+                { nombre: 'Día 1 — Push Metabólico', tipo: 'Empuje Alta Frecuencia', ejercicios: [
+                    { nombre: 'Press banca barra', series: 4, reps: '6', descanso: '2 min', nota: 'Mantener fuerza base' },
+                    { nombre: 'Circuito press/aperturas/dips', series: 3, reps: '10/15/Fallo', descanso: '90 seg', nota: 'Sin descanso entre ejercicios' },
+                    { nombre: 'Press hombro + Elevaciones laterales', series: 4, reps: '10+20', descanso: '60 seg', nota: 'Superserie' },
+                    { nombre: 'HIIT sprints', series: 1, reps: '10 x (20 seg/40 seg)', descanso: '—', nota: 'Tabata modificado' },
+                ]},
+                { nombre: 'Día 2 — Pull Metabólico', tipo: 'Jalón Alta Frecuencia', ejercicios: [
+                    { nombre: 'Peso muerto', series: 3, reps: '5', descanso: '3 min', nota: 'Mantener fuerza base' },
+                    { nombre: 'Dominadas + Remo (superserie)', series: 4, reps: 'Máx+10', descanso: '90 seg', nota: '' },
+                    { nombre: 'Circuito jalones', series: 3, reps: '12/15/20', descanso: '60 seg', nota: 'Ancho/neutro/supino' },
+                    { nombre: 'Cardio LISS', series: 1, reps: '30 min', descanso: '—', nota: '60-65% FCmax' },
+                ]},
+                { nombre: 'Día 3 — Legs Metabólico', tipo: 'Tren Inferior Intenso', ejercicios: [
+                    { nombre: 'Sentadilla trasera', series: 4, reps: '6', descanso: '2 min', nota: 'Mantener fuerza base' },
+                    { nombre: 'Dropset sentadilla hack', series: 3, reps: '10/15/20', descanso: '2 min', nota: 'Reduce peso 20% en cada set' },
+                    { nombre: 'Superserie curl/extensión', series: 4, reps: '15+15', descanso: '60 seg', nota: '' },
+                    { nombre: 'Escaladora', series: 1, reps: '20 min', descanso: '—', nota: 'Intensidad media-alta' },
+                ]},
+            ]
+        }
+    }
+};
+
+let RUTINAS_INICIALES = [
+    { nombre: 'RUTINA FULL BODY', nivel: 'principiante', tipo: 'fuerza', semanas: 4, descripcion: 'Rutina completa de cuerpo entero ideal para principiantes.' },
+    { nombre: 'HIPERTROFIA PROGRESIVA', nivel: 'intermedio', tipo: 'hipertrofia', semanas: 8, descripcion: 'Programa de hipertrofia con progresión de carga semanal.' },
+    { nombre: 'QUEMA DE GRASA INTENSIVA', nivel: 'avanzado', tipo: 'perdida_de_grasa', semanas: 6, descripcion: 'Alta intensidad combinando cardio HIIT y fuerza.' },
+];
+
+function cargarRutinasLista() {
+    const lista = document.getElementById('rutinas-lista');
+    const niveles = { principiante:'nivel-principiante', intermedio:'nivel-intermedio', avanzado:'nivel-avanzado' };
+    const tipos   = { fuerza:'Fuerza', hipertrofia:'Hipertrofia', cardio:'Cardio', perdida_de_grasa:'Pérdida de grasa' };
+
+    lista.innerHTML = RUTINAS_INICIALES.map((r, i) => `
+        <div class="rutina-card">
+            <div style="flex:1">
+                <span class="rutina-nivel ${niveles[r.nivel]}">${r.nivel.charAt(0).toUpperCase()+r.nivel.slice(1)}</span>
+                <div class="rutina-name">${r.nombre}</div>
+                <div class="rutina-tipo">Tipo: ${tipos[r.tipo]} · ${r.semanas} semanas</div>
+                <div class="rutina-desc">${r.descripcion}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0">
+                <button class="btn-sm" onclick="verRutina(${i})">Ver →</button>
+                <button class="btn-sm-outline" onclick="editarRutina(${i})">✏️ Editar</button>
+                <button class="btn-sm-outline" style="border-color:rgba(255,45,45,0.3);color:var(--red)" onclick="eliminarRutina(${i})">🗑️ Eliminar</button>
+            </div>
+        </div>`).join('');
+}
+
+function verRutina(index) {
+    const r = RUTINAS_INICIALES[index];
+    const datos = RUTINAS_DB[r.tipo]?.[r.nivel];
+    if (!datos) { showToast('❌ Rutina no disponible'); return; }
+
+    const niveles = { principiante:'nivel-principiante', intermedio:'nivel-intermedio', avanzado:'nivel-avanzado' };
+    const tipos   = { fuerza:'💪 Fuerza', hipertrofia:'🏋️ Hipertrofia', cardio:'🏃 Cardio', perdida_de_grasa:'🔥 Pérdida de grasa' };
+
+    const diasHTML = datos.dias.map((dia, di) => `
+        <div class="dia-block">
+            <div class="dia-header" onclick="toggleDia('dia-${index}-${di}')">
+                <div>
+                    <div class="dia-nombre">${dia.nombre}</div>
+                    <div class="dia-tipo">${dia.tipo}</div>
+                </div>
+                <span class="dia-chevron" id="chev-dia-${index}-${di}">▼</span>
+            </div>
+            <div class="ejercicios-lista" id="dia-${index}-${di}">
+                <div class="ejercicio-header-row">
+                    <span>Ejercicio</span>
+                    <span>Series</span>
+                    <span>Reps</span>
+                    <span>Descanso</span>
+                </div>
+                ${dia.ejercicios.map(e => `
+                    <div class="ejercicio-row">
+                        <div>
+                            <div class="ejercicio-nombre">${e.nombre}</div>
+                            ${e.nota ? `<div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px">💡 ${e.nota}</div>` : ''}
+                        </div>
+                        <div class="ejercicio-dato"><span>Series</span>${e.series}</div>
+                        <div class="ejercicio-dato"><span>Reps</span>${e.reps}</div>
+                        <div class="ejercicio-dato"><span>Descanso</span>${e.descanso}</div>
+                    </div>`).join('')}
+            </div>
+        </div>`).join('');
+
+    document.getElementById('rutina-detalle-content').innerHTML = `
+        <div class="rutina-modal-header">
+            <div>
+                <span class="rutina-modal-nivel rutina-nivel ${niveles[r.nivel]}">${r.nivel.charAt(0).toUpperCase()+r.nivel.slice(1)}</span>
+                <div class="rutina-modal-titulo">${r.nombre}</div>
+                <div class="rutina-modal-meta">
+                    <span>📅 ${datos.semanas} semanas</span>
+                    <span>${tipos[r.tipo]}</span>
+                    <span>📋 ${datos.dias.length} días/semana</span>
+                </div>
+            </div>
+        </div>
+        <p style="font-size:0.85rem;color:var(--text-muted);font-weight:300;line-height:1.7;margin-bottom:20px">${datos.descripcion}</p>
+        <div class="semana-block">
+            <div class="semana-titulo">PLAN DE ENTRENAMIENTO</div>
+            ${diasHTML}
+        </div>
+        <div class="notas-box">
+            <strong>📌 Notas del entrenador:</strong><br>${datos.notas}
+        </div>`;
+
+    document.getElementById('modal-rutina-detalle').classList.add('open');
+}
+
+function toggleDia(id) {
+    const lista   = document.getElementById(id);
+    const chevron = document.getElementById('chev-' + id);
+    const isOpen  = lista.classList.contains('open');
+    lista.classList.toggle('open', !isOpen);
+    chevron.classList.toggle('open', !isOpen);
+}
+function abrirModalRutina() { document.getElementById('modal-rutina').classList.add('open'); }
+function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
+
+let rutinaEditandoIndex = null;
+
+function abrirModalRutina() {
+    rutinaEditandoIndex = null;
+    document.getElementById('modal-rutina-titulo').textContent = 'NUEVA RUTINA';
+    document.getElementById('rut-nombre').value   = '';
+    document.getElementById('rut-nivel').value    = 'principiante';
+    document.getElementById('rut-tipo').value     = 'fuerza';
+    document.getElementById('rut-semanas').value  = '';
+    document.getElementById('rut-desc').value     = '';
+    document.getElementById('modal-rutina').classList.add('open');
+}
+
+function editarRutina(index) {
+    const r = RUTINAS_INICIALES[index];
+    rutinaEditandoIndex = index;
+    document.getElementById('modal-rutina-titulo').textContent = 'EDITAR RUTINA';
+    document.getElementById('rut-nombre').value   = r.nombre;
+    document.getElementById('rut-nivel').value    = r.nivel;
+    document.getElementById('rut-tipo').value     = r.tipo;
+    document.getElementById('rut-semanas').value  = r.semanas;
+    document.getElementById('rut-desc').value     = r.descripcion;
+    document.getElementById('modal-rutina').classList.add('open');
+}
+
+function guardarRutina() {
+    const nombre   = document.getElementById('rut-nombre').value.trim();
+    const nivel    = document.getElementById('rut-nivel').value;
+    const tipo     = document.getElementById('rut-tipo').value;
+    const semanas  = document.getElementById('rut-semanas').value;
+    const desc     = document.getElementById('rut-desc').value.trim();
+
+    if (!nombre) { showToast('❌ Ingresa el nombre de la rutina'); return; }
+    if (!semanas) { showToast('❌ Ingresa la duración en semanas'); return; }
+
+    const rutina = { nombre: nombre.toUpperCase(), nivel, tipo, semanas: parseInt(semanas), descripcion: desc || 'Sin descripción.' };
+
+    if (rutinaEditandoIndex !== null) {
+        // Editar existente
+        RUTINAS_INICIALES[rutinaEditandoIndex] = rutina;
+        showToast('✅ Rutina actualizada correctamente');
+    } else {
+        // Crear nueva
+        RUTINAS_INICIALES.push(rutina);
+        showToast('✅ Rutina creada exitosamente');
+    }
+
+    rutinaEditandoIndex = null;
+    cerrarModal('modal-rutina');
+    cargarRutinasLista();
+}
+
+function eliminarRutina(index) {
+    const r = RUTINAS_INICIALES[index];
+    if (!confirm(`¿Seguro que deseas eliminar la rutina "${r.nombre}"?`)) return;
+    RUTINAS_INICIALES.splice(index, 1);
+    cargarRutinasLista();
+    showToast('✅ Rutina eliminada');
+}
+
+// ── PERFIL ──
+function guardarPerfil() {
+    const nombre = document.getElementById('perfil-input-nombre').value.trim();
+    const apellido = document.getElementById('perfil-input-apellido').value.trim();
+    const especialidad = document.getElementById('perfil-input-especialidad').value.trim();
+    if (nombre) {
+        document.getElementById('perfil-nombre-display').textContent = nombre + ' ' + apellido;
+        document.getElementById('sidebar-name').textContent = nombre + ' ' + apellido;
+        document.getElementById('avatar-initials').textContent = nombre.charAt(0).toUpperCase();
+        document.getElementById('perfil-avatar').textContent = nombre.charAt(0).toUpperCase();
+    }
+    if (especialidad) document.getElementById('perfil-spec-display').textContent = especialidad;
+    showToast('✅ Perfil actualizado correctamente');
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+    window.location.href = 'login.html';
+}
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+</script>
+</body>
+</html>

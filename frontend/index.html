@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POWERGYM — Construye la mejor versión de ti</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --black: #0a0a0a;
+            --white: #f5f5f0;
+            --gray: #1a1a1a;
+            --gray2: #2a2a2a;
+            --accent: #ff2020;
+            --red: #ff2d2d;
+            --text-muted: #888;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--black);
+            color: var(--white);
+            font-family: 'Barlow', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* NAVBAR */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1000;
+            padding: 24px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.4s ease, padding 0.4s ease;
+        }
+        nav.scrolled {
+            background: rgba(10,10,10,0.97);
+            backdrop-filter: blur(20px);
+            padding: 16px 60px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .nav-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 3px;
+            color: var(--white);
+            text-decoration: none;
+        }
+        .nav-logo span { color: var(--accent); }
+        .nav-links { display: flex; gap: 40px; list-style: none; align-items: center; }
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: color 0.2s;
+            position: relative;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px; left: 0;
+            width: 0; height: 1px;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+        .nav-links a:hover { color: var(--white); }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-cta {
+            background: var(--accent) !important;
+            color: var(--black) !important;
+            padding: 10px 24px !important;
+            font-weight: 700 !important;
+            clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+        }
+        .nav-cta::after { display: none !important; }
+        .nav-cta:hover { background: var(--white) !important; }
+
+        /* HERO */
+        .hero {
+            height: 100vh;
+            min-height: 600px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 70% 50%, rgba(232,255,0,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 40% at 20% 80%, rgba(255,45,45,0.05) 0%, transparent 50%),
+                var(--black);
+        }
+        .hero-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            padding: 0 60px;
+            max-width: 900px;
+        }
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 24px;
+            animation: fadeUp 0.8s ease 0.2s both;
+        }
+        .hero-tag::before {
+            content: '';
+            width: 30px; height: 1px;
+            background: var(--accent);
+        }
+        .hero-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(5rem, 12vw, 11rem);
+            line-height: 0.9;
+            letter-spacing: 2px;
+            margin-bottom: 32px;
+        }
+        .hero-title .line1 { display: block; animation: fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.4s both; }
+        .hero-title .line2 { display: block; color: var(--accent); animation: fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.55s both; }
+        .hero-title .line3 { display: block; -webkit-text-stroke: 1px var(--white); color: transparent; animation: fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.7s both; }
+        .hero-subtitle {
+            font-size: 1rem;
+            font-weight: 300;
+            color: var(--text-muted);
+            max-width: 480px;
+            line-height: 1.7;
+            margin-bottom: 48px;
+            animation: fadeUp 0.8s ease 1s both;
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            animation: fadeUp 0.8s ease 1.2s both;
+            margin-bottom: 60px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: var(--black);
+            padding: 16px 40px;
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-decoration: none;
+            clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+            transition: all 0.25s ease;
+            display: inline-block;
+        }
+        .btn-primary:hover { background: var(--white); transform: translateX(4px); }
+        .btn-secondary {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: gap 0.3s ease;
+        }
+        .btn-secondary:hover { gap: 18px; }
+        .btn-secondary::after { content: '→'; font-size: 1.2rem; }
+        .hero-stats {
+            position: absolute;
+            right: 60px;
+            bottom: 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            animation: fadeUp 0.8s ease 1.4s both;
+        }
+        .stat-item { text-align: right; }
+        .stat-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            line-height: 1;
+            color: var(--white);
+        }
+        .stat-num span { color: var(--accent); }
+        .stat-label {
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .hero-scroll {
+            position: absolute;
+            bottom: 40px;
+            left: 60px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.65rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            animation: fadeUp 0.8s ease 1.6s both;
+        }
+        .scroll-line {
+            width: 40px; height: 1px;
+            background: var(--text-muted);
+            animation: scrollPulse 2s ease infinite;
+        }
+        @keyframes scrollPulse {
+            0%, 100% { width: 40px; opacity: 0.4; }
+            50% { width: 70px; opacity: 1; }
+        }
+
+        /* TICKER */
+        .ticker {
+            background: var(--accent);
+            padding: 14px 0;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .ticker-inner {
+            display: inline-flex;
+            gap: 60px;
+            animation: ticker 20s linear infinite;
+        }
+        .ticker-item {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 3px;
+            color: var(--black);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .ticker-dot { width: 6px; height: 6px; background: var(--black); border-radius: 50%; opacity: 0.4; }
+        @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+        /* SECCIONES */
+        section { padding: 120px 60px; }
+        .section-tag {
+            font-size: 0.65rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .section-tag::before { content: ''; width: 24px; height: 1px; background: var(--accent); }
+        .section-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3rem, 6vw, 5.5rem);
+            line-height: 0.95;
+            letter-spacing: 2px;
+            margin-bottom: 60px;
+        }
+
+        /* SERVICIOS */
+        .servicios { background: var(--gray); }
+        .servicios-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+        }
+        .servicio-card {
+            background: var(--black);
+            padding: 48px 40px;
+            position: relative;
+            overflow: hidden;
+            transition: background 0.3s ease;
+            cursor: pointer;
+        }
+        .servicio-card::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 0; height: 2px;
+            background: var(--accent);
+            transition: width 0.4s ease;
+        }
+        .servicio-card:hover { background: var(--gray2); }
+        .servicio-card:hover::before { width: 100%; }
+        .servicio-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 4rem;
+            color: rgba(255,255,255,0.15);
+            line-height: 1;
+            margin-bottom: 24px;
+        }
+        .servicio-icon { font-size: 2rem; margin-bottom: 20px; display: block; }
+        .servicio-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+        .servicio-desc {
+            font-size: 0.85rem;
+            color: #aaaaaa;
+            line-height: 1.7;
+            font-weight: 300;
+        }
+        .servicio-tags { margin-top: 20px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .tag {
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+        }
+
+        /* PLANES */
+        #planes { background: var(--black); }
+        .planes-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .plan-card {
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 40px 32px;
+            position: relative;
+            transition: border-color 0.3s ease, transform 0.3s ease;
+            background: var(--gray);
+        }
+        .plan-card:hover { border-color: var(--accent); transform: translateY(-8px); }
+        .plan-card.featured {
+            background: var(--accent);
+            color: var(--black);
+            border-color: var(--accent);
+        }
+        .plan-badge {
+            position: absolute;
+            top: -1px; right: 24px;
+            background: var(--red);
+            color: #ffffff; /* ← era var(--white) */
+            font-size: 0.65rem; /* ← era 0.6rem */
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 6px 14px;
+        }
+        .plan-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.6rem;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        .plan-duration {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #aaaaaa;
+            margin-bottom: 28px;
+        }
+        .plan-card.featured .plan-duration { color: rgba(0,0,0,0.5); }
+        .plan-price {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3.2rem;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .plan-price-label {
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            color: #aaaaaa;
+            margin-bottom: 32px;
+        }
+        .plan-card.featured .plan-price-label { color: rgba(0,0,0,0.5); }
+        .plan-features { list-style: none; margin-bottom: 32px; }
+        .plan-features li {
+            font-size: 0.82rem;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            gap: 10px;
+            font-weight: 300;
+            line-height: 1.5;
+        }
+        .plan-card.featured .plan-features li { border-bottom-color: rgba(0,0,0,0.1); }
+        .plan-features li::before { content: '→'; color: var(--accent); font-size: 0.8rem; flex-shrink: 0; margin-top: 2px; }
+        .plan-card.featured .plan-features li::before { color: var(--black); }
+        .btn-plan {
+            display: block;
+            text-align: center;
+            padding: 14px;
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: all 0.25s ease;
+        }
+        .btn-plan-outline { border: 1px solid rgba(255,255,255,0.2); color: var(--white); }
+        .btn-plan-outline:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-plan-solid { background: var(--black); color: var(--accent); }
+        .btn-plan-solid:hover { background: var(--gray2); }
+
+        /* CLASES */
+        .clases { background: var(--gray); }
+        .clases-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        .clase-card {
+            position: relative;
+            height: 320px;
+            overflow: hidden;
+            background: var(--black);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 32px;
+            cursor: pointer;
+        }
+        .clase-bg {
+            position: absolute;
+            inset: 0;
+            font-size: 8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.06;
+            transition: opacity 0.3s ease, transform 0.4s ease;
+        }
+        .clase-card:hover .clase-bg { opacity: 0.12; transform: scale(1.1); }
+        .clase-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%);
+        }
+        .clase-content { position: relative; z-index: 2; }
+        .clase-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.4rem;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+        }
+        .clase-info {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .clase-border {
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 0; height: 3px;
+            background: var(--accent);
+            transition: width 0.4s ease;
+            z-index: 3;
+        }
+        .clase-card:hover .clase-border { width: 100%; }
+
+        /* HORARIOS */
+        #horarios { background: var(--black); }
+        .horarios-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+        }
+        .horario-item {
+            background: var(--gray);
+            padding: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+        .horario-item::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 3px; height: 0;
+            background: var(--accent);
+            transition: height 0.4s ease;
+        }
+        .horario-item:hover::before { height: 100%; }
+        .horario-dias {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+        .horario-tiempo {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        .horario-tiempo strong {
+            display: block;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            color: var(--accent);
+            letter-spacing: 2px;
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+
+        /* CTA */
+        .cta-section {
+            background: var(--accent);
+            padding: 100px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+        }
+        .cta-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3rem, 6vw, 6rem);
+            color: var(--black);
+            line-height: 0.95;
+            letter-spacing: 2px;
+        }
+        .cta-title em {
+            font-style: normal;
+            -webkit-text-stroke: 2px var(--black);
+            color: transparent;
+        }
+        .cta-right { text-align: right; flex-shrink: 0; }
+        .cta-sub {
+            font-size: 0.9rem;
+            color: rgba(0,0,0,0.7); /* ← era 0.6 */
+            max-width: 280px;
+            margin-left: auto;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+        .btn-cta-dark {
+            background: var(--black);
+            color: var(--accent);
+            padding: 18px 48px;
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-decoration: none;
+            display: inline-block;
+            clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+            transition: all 0.25s ease;
+        }
+        .btn-cta-dark:hover { background: var(--gray2); transform: translateX(6px); }
+
+        /* FOOTER */
+        footer {
+            background: var(--black);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding: 80px 60px 40px;
+        }
+        .footer-top {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 60px;
+            padding-bottom: 60px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            margin-bottom: 40px;
+        }
+        .footer-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: 3px;
+            margin-bottom: 16px;
+        }
+        .footer-logo span { color: var(--accent); }
+        .footer-slogan {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-style: italic;
+            font-weight: 300;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        .footer-contact { display: flex; flex-direction: column; gap: 8px; }
+        .footer-contact a {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+        .footer-contact a:hover { color: var(--accent); }
+        .footer-col h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 3px;
+            margin-bottom: 24px;
+            color: var(--text-muted);
+        }
+        .footer-links { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 300;
+            transition: color 0.2s, padding-left 0.2s;
+        }
+        .footer-links a:hover { color: var(--white); padding-left: 6px; }
+        .footer-bottom { display: flex; justify-content: space-between; align-items: center; }
+        .footer-copy {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.5); /* ← era 0.2 */
+            letter-spacing: 1px;
+        }
+        .social-links { display: flex; gap: 20px; }
+        .social-links a {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .social-links a:hover { color: var(--accent); }
+
+        /* ANIMACIONES */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            nav { padding: 20px 30px; }
+            nav.scrolled { padding: 14px 30px; }
+            section { padding: 80px 30px; }
+            .hero-content { padding: 0 30px; }
+            .hero-stats { right: 30px; }
+            .servicios-grid { grid-template-columns: repeat(2, 1fr); }
+            .planes-grid { grid-template-columns: repeat(2, 1fr); }
+            .clases-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-top { grid-template-columns: 1fr 1fr; }
+            .cta-section { flex-direction: column; text-align: center; }
+            .cta-right { text-align: center; }
+            .cta-sub { margin: 0 auto 32px; }
+        }
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .servicios-grid { grid-template-columns: 1fr; }
+            .planes-grid { grid-template-columns: 1fr; }
+            .clases-grid { grid-template-columns: 1fr; }
+            .horarios-box { grid-template-columns: 1fr; }
+            .hero-stats { display: none; }
+            .footer-top { grid-template-columns: 1fr; gap: 32px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav id="navbar">
+        <a href="index.html" class="nav-logo">POWER<span>GYM</span></a>
+        <ul class="nav-links">
+            <li><a href="#servicios">Servicios</a></li>
+            <li><a href="#planes">Planes</a></li>
+            <li><a href="#clases">Clases</a></li>
+            <li><a href="#horarios">Horarios</a></li>
+            <li><a href="pages/login.html" class="nav-cta">Ingresar</a></li>
+        </ul>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-grid"></div>
+        <div class="hero-content">
+            <br><br><br>
+            <h1 class="hero-title">
+                <span class="line1">CONSTRUYE</span>
+                <span class="line2">LA MEJOR</span>
+                <span class="line3">VERSIÓN</span>
+            </h1>
+            <p class="hero-subtitle">No solo entrenas, te unes a una comunidad que te impulsa a superar tus metas. Clases grupales, entrenadores atentos y un ambiente motivador.</p>
+            <div class="hero-buttons">
+                <a href="pages/registro.html" class="btn-primary">Únete ahora</a>
+                <a href="#planes" class="btn-secondary">Ver planes</a>
+            </div>
+        </div>
+        <div class="hero-stats">
+            <div class="stat-item">
+                <div class="stat-num">500<span>+</span></div>
+                <div class="stat-label">Miembros activos</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">15<span>+</span></div>
+                <div class="stat-label">Entrenadores</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">6<span>+</span></div>
+                <div class="stat-label">Años de experiencia</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TICKER -->
+    <div class="ticker">
+        <div class="ticker-inner">
+            <span class="ticker-item">MUSCULACIÓN <span class="ticker-dot"></span></span>
+            <span class="ticker-item">CARDIO <span class="ticker-dot"></span></span>
+            <span class="ticker-item">CYCLING <span class="ticker-dot"></span></span>
+            <span class="ticker-item">BOX <span class="ticker-dot"></span></span>
+            <span class="ticker-item">AERÓBICOS <span class="ticker-dot"></span></span>
+            <span class="ticker-item">ENTRENADOR PERSONAL <span class="ticker-dot"></span></span>
+            <span class="ticker-item">SUPLEMENTACIÓN <span class="ticker-dot"></span></span>
+            <span class="ticker-item">MUSCULACIÓN <span class="ticker-dot"></span></span>
+            <span class="ticker-item">CARDIO <span class="ticker-dot"></span></span>
+            <span class="ticker-item">CYCLING <span class="ticker-dot"></span></span>
+            <span class="ticker-item">BOX <span class="ticker-dot"></span></span>
+            <span class="ticker-item">AERÓBICOS <span class="ticker-dot"></span></span>
+            <span class="ticker-item">ENTRENADOR PERSONAL <span class="ticker-dot"></span></span>
+            <span class="ticker-item">SUPLEMENTACIÓN <span class="ticker-dot"></span></span>
+        </div>
+    </div>
+
+    <!-- SERVICIOS -->
+    <section class="servicios" id="servicios">
+        <div class="section-tag">Nuestros servicios</div>
+        <h2 class="section-title">LO QUE<br>OFRECEMOS</h2>
+        <div class="servicios-grid">
+            <div class="servicio-card">
+                <div class="servicio-num">01</div>
+                <span class="servicio-icon">🏋️</span>
+                <div class="servicio-name">Musculación</div>
+                <p class="servicio-desc">Zona de pesas completamente equipada con máquinas de última generación para desarrollar fuerza e hipertrofia.</p>
+                <div class="servicio-tags"><span class="tag">Fuerza</span><span class="tag">Hipertrofia</span></div>
+            </div>
+            <div class="servicio-card">
+                <div class="servicio-num">02</div>
+                <span class="servicio-icon">🏃</span>
+                <div class="servicio-name">Cardio</div>
+                <p class="servicio-desc">Equipos cardiovasculares de alto rendimiento: cintas, elípticas, bicicletas estáticas y remos.</p>
+                <div class="servicio-tags"><span class="tag">Resistencia</span><span class="tag">Quema de grasa</span></div>
+            </div>
+            <div class="servicio-card">
+                <div class="servicio-num">03</div>
+                <span class="servicio-icon">🚴</span>
+                <div class="servicio-name">Clases Grupales</div>
+                <p class="servicio-desc">Cycling de alta energía, Box funcional y Aeróbicos dinámicos. Instructores certificados que hacen cada clase única.</p>
+                <div class="servicio-tags"><span class="tag">Cycling</span><span class="tag">Box</span><span class="tag">Aeróbicos</span></div>
+            </div>
+            <div class="servicio-card">
+                <div class="servicio-num">04</div>
+                <span class="servicio-icon">👤</span>
+                <div class="servicio-name">Entrenador Personal</div>
+                <p class="servicio-desc">Planes de entrenamiento 100% personalizados. Tu entrenador te acompaña en cada paso hacia tus metas.</p>
+                <div class="servicio-tags"><span class="tag">Personalizado</span><span class="tag">Seguimiento</span></div>
+            </div>
+            <div class="servicio-card">
+                <div class="servicio-num">05</div>
+                <span class="servicio-icon">💊</span>
+                <div class="servicio-name">Suplementación</div>
+                <p class="servicio-desc">Proteínas, creatina, pre-entrenos y más. Productos de calidad premium para potenciar tus resultados.</p>
+                <div class="servicio-tags"><span class="tag">Proteínas</span><span class="tag">Creatina</span><span class="tag">BCAA</span></div>
+            </div>
+            <div class="servicio-card" style="background:var(--accent); cursor:pointer;" onclick="window.location.href='pages/registro.html'">
+                <div class="servicio-num" style="color:rgba(0,0,0,0.08)">→</div>
+                <div class="servicio-name" style="color:var(--black);font-size:2.5rem;margin-top:20px;">ÚNETE<br>HOY</div>
+                <p class="servicio-desc" style="color:rgba(0,0,0,0.6);margin-top:16px;">Regístrate y empieza tu transformación desde el primer día.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- PLANES -->
+    <section id="planes">
+        <div class="section-tag">Membresías</div>
+        <h2 class="section-title">ELIGE TU<br>PLAN</h2>
+        <div class="planes-grid" id="planes-grid">
+            <!-- Cargando... -->
+            <div style="grid-column:1/-1;text-align:center;color:#888;padding:40px;font-size:0.85rem;letter-spacing:2px;text-transform:uppercase">
+                Cargando planes...
+            </div>
+        </div>
+    </section>
+
+    <!-- CLASES -->
+    <section class="clases" id="clases">
+        <div class="section-tag">Clases grupales</div>
+        <h2 class="section-title">ENTRENA<br>EN COMUNIDAD</h2>
+        <div class="clases-grid">
+            <div class="clase-card">
+                <div class="clase-bg">🚴</div>
+                <div class="clase-content">
+                    <div class="clase-name">CYCLING</div>
+                    <div class="clase-info">
+                        <span>Lun / Mié / Vie</span>
+                        <span>6:00 AM — 7:00 AM</span>
+                        <span>15 cupos</span>
+                    </div>
+                </div>
+                <div class="clase-border"></div>
+            </div>
+            <div class="clase-card">
+                <div class="clase-bg">🥊</div>
+                <div class="clase-content">
+                    <div class="clase-name">BOX</div>
+                    <div class="clase-info">
+                        <span>Mar / Jue / Sáb</span>
+                        <span>7:00 AM — 8:00 AM</span>
+                        <span>12 cupos</span>
+                    </div>
+                </div>
+                <div class="clase-border"></div>
+            </div>
+            <div class="clase-card">
+                <div class="clase-bg">💃</div>
+                <div class="clase-content">
+                    <div class="clase-name">AERÓBICOS</div>
+                    <div class="clase-info">
+                        <span>Lun / Mié / Vie</span>
+                        <span>8:00 AM — 9:00 AM</span>
+                        <span>20 cupos</span>
+                    </div>
+                </div>
+                <div class="clase-border"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HORARIOS -->
+    <section id="horarios">
+        <div class="section-tag">Horarios de atención</div>
+        <h2 class="section-title">SIEMPRE<br>ABIERTOS</h2>
+        <div class="horarios-box">
+            <div class="horario-item">
+                <div class="horario-dias">Lunes a Viernes</div>
+                <div class="horario-tiempo">
+                    <strong>5:00 AM — 9:00 PM</strong>
+                    Abierto todos los días entre semana
+                </div>
+            </div>
+            <div class="horario-item">
+                <div class="horario-dias">Sábados, Domingos y Festivos</div>
+                <div class="horario-tiempo">
+                    <strong>7:00 AM — 3:00 PM</strong>
+                    También disponibles en fines de semana
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <div class="cta-section">
+        <div class="cta-title">
+            EMPIEZA<br>TU<br><em>CAMBIO</em>
+        </div>
+        <div class="cta-right">
+            <p class="cta-sub">Regístrate hoy y recibe una evaluación física gratuita con uno de nuestros entrenadores certificados.</p>
+            <a href="pages/registro.html" class="btn-cta-dark">Registrarme ahora →</a>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-top">
+            <div>
+                <div class="footer-logo">POWER<span>GYM</span></div>
+                <p class="footer-slogan">"Construye la mejor versión de ti"</p>
+                <div class="footer-contact">
+                    <a href="tel:+573001234567">📞 +57 300 123 4567</a>
+                    <a href="mailto:info@powergym.com">✉️ info@powergym.com</a>
+                    <a href="#">📍 Medellín, Colombia</a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h3>Servicios</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Musculación</a></li>
+                    <li><a href="#">Cardio</a></li>
+                    <li><a href="#">Clases Grupales</a></li>
+                    <li><a href="#">Entrenador Personal</a></li>
+                    <li><a href="#">Suplementación</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>Mi cuenta</h3>
+                <ul class="footer-links">
+                    <li><a href="pages/registro.html">Registrarse</a></li>
+                    <li><a href="pages/login.html">Iniciar sesión</a></li>
+                    <li><a href="#planes">Ver planes</a></li>
+                    <li><a href="#clases">Reservar clase</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>Información</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Sobre nosotros</a></li>
+                    <li><a href="pages/contacto.html">Contacto</a></li>
+                    <li><a href="#">Términos y condiciones</a></li>
+                    <li><a href="#">Política de privacidad</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p class="footer-copy">© 2024 POWERGYM — Medellín, Colombia. Todos los derechos reservados.</p>
+            <div class="social-links">
+                <a href="#">Instagram</a>
+                <a href="#">Facebook</a>
+                <a href="#">WhatsApp</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // NAVBAR SCROLL
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 50);
+        });
+  
+        // CARGAR PLANES DESDE LA API
+        async function cargarPlanes() {
+            const grid = document.getElementById('planes-grid');
+            const durs = ['1 Mes', '3 Meses', '6 Meses', '1 Año'];
+ 
+            try {
+                const res = await fetch('http://localhost:3000/api/planes');
+ 
+                if (!res.ok) throw new Error('Error en la respuesta');
+ 
+                const planes = await res.json();
+ 
+                if (!planes.length) {
+                    grid.innerHTML = `
+                        <div style="grid-column:1/-1;text-align:center;color:#888;padding:40px">
+                            No hay planes disponibles en este momento.
+                        </div>`;
+                    return;
+                }
+  
+                grid.innerHTML = planes.map((p, i) => {
+                    const featured  = i === 2;
+                    const badge     = i === 3 ? '<div class="plan-badge">Más popular</div>' : '';
+                    const precio    = '$' + Number(p.precio).toLocaleString('es-CO');
+                    const duracion  = durs[i] || (p.duracion_dias + ' días');
+                    const beneficios = (p.beneficios || '').split(',').map(b => `<li>${b.trim()}</li>`).join('');
+ 
+                    return `
+                    <div class="plan-card ${featured ? 'featured' : ''}">
+                        ${badge}
+                        <div class="plan-name">${p.nombre}</div>
+                        <div class="plan-duration">${duracion}</div>
+                        <div class="plan-price">${precio}</div>
+                        <div class="plan-price-label">COP / período</div>
+                        <ul class="plan-features">${beneficios}</ul>
+                        <a href="pages/login.html" class="${featured ? 'btn-plan btn-plan-solid' : 'btn-plan btn-plan-outline'}">
+                            Elegir plan
+                        </a>
+                    </div>`;
+                }).join('');
+ 
+            } catch {
+                grid.innerHTML = `
+                    <div class="plan-card">
+                        <div class="plan-name">Plan Básico</div>
+                        <div class="plan-duration">1 Mes</div>
+                        <div class="plan-price">$79.900</div>
+                        <div class="plan-price-label">COP / período</div>
+                        <ul class="plan-features">
+                            <li>Acceso a musculación y cardio</li>
+                            <li>Casillero incluido</li>
+                            <li>Evaluación física inicial</li>
+                        </ul>
+                        <a href="pages/login.html" class="btn-plan btn-plan-outline">Elegir plan</a>
+                    </div>
+                    <div class="plan-card">
+                        <div class="plan-name">Plan Estándar</div>
+                        <div class="plan-duration">3 Meses</div>
+                        <div class="plan-price">$199.900</div>
+                        <div class="plan-price-label">COP / período</div>
+                        <ul class="plan-features">
+                            <li>Todo lo del Plan Básico</li>
+                            <li>2 clases grupales por semana</li>
+                            <li>10% descuento en suplementos</li>
+                        </ul>
+                        <a href="pages/login.html" class="btn-plan btn-plan-outline">Elegir plan</a>
+                    </div>
+                    <div class="plan-card featured">
+                        <div class="plan-name">Plan Premium</div>
+                        <div class="plan-duration">6 Meses</div>
+                        <div class="plan-price">$349.900</div>
+                        <div class="plan-price-label">COP / período</div>
+                        <ul class="plan-features">
+                            <li>Todo lo del Plan Estándar</li>
+                            <li>Clases grupales ilimitadas</li>
+                            <li>1 sesión mensual entrenador</li>
+                            <li>15% descuento en suplementos</li>
+                        </ul>
+                        <a href="pages/login.html" class="btn-plan btn-plan-solid">Elegir plan</a>
+                    </div>
+                    <div class="plan-card">
+                        <div class="plan-badge">Más popular</div>
+                        <div class="plan-name">Plan Anual</div>
+                        <div class="plan-duration">1 Año</div>
+                        <div class="plan-price">$599.900</div>
+                        <div class="plan-price-label">COP / período</div>
+                        <ul class="plan-features">
+                            <li>Todo lo del Plan Premium</li>
+                            <li>Entrenador cada 15 días</li>
+                            <li>Rutina personalizada</li>
+                            <li>20% descuento en suplementos</li>
+                        </ul>
+                        <a href="pages/login.html" class="btn-plan btn-plan-outline">Elegir plan</a>
+                    </div>`;
+            }
+        }
+ 
+        cargarPlanes();
+    </script>
+</body>
+</html>

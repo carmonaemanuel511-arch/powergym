@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POWERGYM — Panel Administrador</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --black: #0a0a0a;
+            --white: #f5f5f0;
+            --gray: #1a1a1a;
+            --gray2: #2a2a2a;
+            --gray3: #333;
+            --accent: #ff2020;
+            --red: #ff2d2d;
+            --green: #00e676;
+            --text-muted: #888;
+            --sidebar: 240px;
+        }
+        html, body { height: 100%; overflow: hidden; }
+        body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; display: flex; }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar);
+            height: 100vh;
+            background: var(--gray);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0; top: 0;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            z-index: 100;
+        }
+        .sidebar-logo {
+            padding: 28px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.6rem;
+            letter-spacing: 3px;
+            text-decoration: none;
+            color: var(--white);
+        }
+        .sidebar-logo span { color: var(--accent); }
+        .sidebar-role {
+            padding: 0 24px 20px;
+            font-size: 0.6rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 8px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 24px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            transition: color 0.2s, background 0.2s;
+            position: relative;
+        }
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 0;
+            background: var(--accent);
+            transition: width 0.2s;
+        }
+        .nav-item:hover, .nav-item.active { color: var(--white); background: rgba(255,255,255,0.03); }
+        .nav-item.active::before { width: 3px; }
+        .nav-item.active { color: var(--accent); }
+        .nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 20px 24px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .user-avatar {
+            width: 36px; height: 36px;
+            background: var(--accent);
+            color: var(--black);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .user-name { font-size: 0.8rem; font-weight: 600; }
+        .user-email { font-size: 0.68rem; color: var(--text-muted); }
+        .btn-logout {
+            width: 100%;
+            background: rgba(255,45,45,0.1);
+            border: 1px solid rgba(255,45,45,0.2);
+            color: var(--red);
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-logout:hover { background: rgba(255,45,45,0.2); }
+
+        /* ── MAIN ── */
+        .main {
+            margin-left: var(--sidebar);
+            width: calc(100% - var(--sidebar));
+            height: 100vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .main::-webkit-scrollbar { width: 4px; }
+        .main::-webkit-scrollbar-thumb { background: var(--gray2); }
+
+        /* TOPBAR */
+        .topbar {
+            padding: 20px 36px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--black);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .page-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+        }
+        .topbar-right { display: flex; align-items: center; gap: 16px; }
+        .badge-notif {
+            background: var(--red);
+            color: var(--white);
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        .topbar-date { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; }
+
+        /* CONTENT */
+        .content { padding: 32px 36px; flex: 1; }
+
+        /* STATS CARDS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: var(--gray);
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .stat-card:hover { border-color: rgba(232,255,0,0.2); }
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%; height: 2px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover::after { transform: scaleX(1); }
+        .stat-label { font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
+        .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; line-height: 1; color: var(--white); }
+        .stat-value span { color: var(--accent); }
+        .stat-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 8px; font-weight: 300; }
+        .stat-sub.up { color: var(--green); }
+        .stat-sub.down { color: var(--red); }
+        .stat-icon { position: absolute; top: 20px; right: 20px; font-size: 1.8rem; opacity: 0.15; }
+
+        /* SECTIONS */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .section-title-sm {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+        }
+        .btn-sm {
+            background: var(--accent);
+            color: var(--black);
+            border: none;
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 10px 20px;
+            cursor: pointer;
+            clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+            transition: background 0.2s;
+        }
+        .btn-sm:hover { background: var(--white); }
+        .btn-sm-outline {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--white);
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        .btn-sm-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* TABLE */
+        .table-wrap {
+            background: var(--gray);
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden;
+            margin-bottom: 32px;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { border-bottom: 1px solid rgba(255,255,255,0.08); }
+        th {
+            text-align: left;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 14px 20px;
+            font-weight: 600;
+        }
+        td {
+            padding: 14px 20px;
+            font-size: 0.83rem;
+            font-weight: 300;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            vertical-align: middle;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover { background: rgba(255,255,255,0.02); }
+        .td-name { font-weight: 600; }
+        .badge {
+            display: inline-block;
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+        }
+        .badge-active { background: rgba(0,230,118,0.12); color: var(--green); }
+        .badge-vencida { background: rgba(255,45,45,0.12); color: var(--red); }
+        .badge-pendiente { background: rgba(232,255,0,0.12); color: var(--accent); }
+        .badge-plan { background: rgba(255,255,255,0.06); color: var(--white); }
+        .action-btn {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            padding: 5px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Barlow', sans-serif;
+        }
+        .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .action-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+        /* DOS COLUMNAS */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+        .three-col { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 32px; }
+
+        /* PLAN CARD ADMIN */
+        .plan-admin-card {
+            background: var(--gray);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 24px;
+            transition: border-color 0.2s;
+        }
+        .plan-admin-card:hover { border-color: rgba(232,255,0,0.3); }
+        .plan-admin-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 2px; margin-bottom: 4px; }
+        .plan-admin-price { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--accent); margin-bottom: 4px; }
+        .plan-admin-dur { font-size: 0.68rem; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 16px; }
+        .plan-admin-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+        /* SUPLEMENTO CARD */
+        .sup-card {
+            background: var(--gray);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: border-color 0.2s;
+        }
+        .sup-card:hover { border-color: rgba(232,255,0,0.3); }
+        .sup-icon { font-size: 2rem; flex-shrink: 0; }
+        .sup-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 4px; }
+        .sup-price { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--accent); }
+        .sup-stock { font-size: 0.7rem; color: var(--text-muted); }
+        .sup-actions { margin-left: auto; display: flex; flex-direction: column; gap: 6px; }
+
+        /* MODAL */
+        .modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: var(--gray);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px; margin-bottom: 8px; }
+        .modal-sub { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 28px; font-weight: 300; }
+        .modal-close {
+            position: absolute; top: 20px; right: 20px;
+            background: none; border: none;
+            color: var(--text-muted); font-size: 1.2rem;
+            cursor: pointer; transition: color 0.2s;
+        }
+        .modal-close:hover { color: var(--white); }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 7px; }
+        .form-input {
+            width: 100%; background: var(--gray2);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--white); font-family: 'Barlow', sans-serif;
+            font-size: 0.9rem; font-weight: 300;
+            padding: 12px 14px; outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: var(--accent); }
+        .form-input::placeholder { color: rgba(255,255,255,0.2); }
+        textarea.form-input { resize: vertical; min-height: 80px; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+
+        /* ENTRENADOR CARD */
+        .entrenador-card {
+            background: var(--gray);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .entrenador-avatar {
+            width: 44px; height: 44px;
+            background: var(--gray2);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+        .entrenador-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 2px; }
+        .entrenador-spec { font-size: 0.72rem; color: var(--text-muted); }
+        .disponible-toggle {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .toggle-switch {
+            width: 40px; height: 20px;
+            background: var(--gray3);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .toggle-switch.on { background: var(--green); }
+        .toggle-switch::after {
+            content: '';
+            width: 14px; height: 14px;
+            background: var(--white);
+            border-radius: 50%;
+            position: absolute;
+            top: 3px; left: 3px;
+            transition: left 0.2s;
+        }
+        .toggle-switch.on::after { left: 23px; }
+
+        /* EMPTY STATE */
+        .empty-state {
+            padding: 48px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .empty-state p { font-size: 0.85rem; font-weight: 300; }
+
+        /* ALERT */
+        .alert-toast {
+            position: fixed;
+            bottom: 24px; right: 24px;
+            background: var(--gray2);
+            border-left: 3px solid var(--accent);
+            padding: 14px 20px;
+            font-size: 0.83rem;
+            z-index: 999;
+            display: none;
+            animation: fadeUp 0.3s ease;
+        }
+        .alert-toast.show { display: block; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        /* SEARCH */
+        .search-input {
+            background: var(--gray2);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--white);
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.85rem;
+            padding: 10px 16px;
+            outline: none;
+            width: 220px;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: var(--accent); }
+        .search-input::placeholder { color: rgba(255,255,255,0.2); }
+
+        /* TABS internas */
+        .inner-tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 24px; }
+        .inner-tab {
+            background: none; border: none;
+            color: var(--text-muted);
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.72rem; font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase;
+            padding: 12px 20px 12px 0;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+        }
+        .inner-tab::after {
+            content: ''; position: absolute;
+            bottom: -1px; left: 0;
+            width: 0; height: 2px;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+        .inner-tab.active { color: var(--white); }
+        .inner-tab.active::after { width: calc(100% - 20px); }
+        .inner-panel { display: none; }
+        .inner-panel.active { display: block; }
+    </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+    <a href="../index.html" class="sidebar-logo">POWER<span>GYM</span></a>
+    <div class="sidebar-role">Administrador</div>
+
+    <button class="nav-item active" onclick="showSection('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+    </button>
+    <button class="nav-item" onclick="showSection('clientes')">
+        <span class="nav-icon">👥</span> Clientes
+    </button>
+    <button class="nav-item" onclick="showSection('planes')">
+        <span class="nav-icon">📦</span> Planes
+    </button>
+    <button class="nav-item" onclick="showSection('pagos')">
+        <span class="nav-icon">💳</span> Pagos
+    </button>
+    <button class="nav-item" onclick="showSection('clases')">
+        <span class="nav-icon">🏋️</span> Clases
+    </button>
+    <button class="nav-item" onclick="showSection('entrenadores')">
+        <span class="nav-icon">👤</span> Entrenadores
+    </button>
+    <button class="nav-item" onclick="showSection('suplementos')">
+        <span class="nav-icon">💊</span> Suplementos
+    </button>
+
+    <div class="sidebar-bottom">
+        <div class="user-info">
+            <div class="user-avatar" id="avatar-initials">A</div>
+            <div>
+                <div class="user-name" id="sidebar-name">Admin</div>
+                <div class="user-email" id="sidebar-email">admin@powergym.com</div>
+            </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+    </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main">
+    <div class="topbar">
+        <div class="page-title" id="page-title">DASHBOARD</div>
+        <div class="topbar-right">
+            <span class="topbar-date" id="topbar-date"></span>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- ══════════ DASHBOARD ══════════ -->
+        <div id="sec-dashboard" class="section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-label">Total Clientes</div>
+                    <div class="stat-value" id="stat-clientes">—</div>
+                    <div class="stat-sub up">Activos en el sistema</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💳</div>
+                    <div class="stat-label">Membresías Activas</div>
+                    <div class="stat-value" id="stat-membresias">—</div>
+                    <div class="stat-sub up">Vigentes este mes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-label">Ingresos del Mes</div>
+                    <div class="stat-value" id="stat-ingresos"><span>$</span>—</div>
+                    <div class="stat-sub">Pagos completados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🏋️</div>
+                    <div class="stat-label">Clases Activas</div>
+                    <div class="stat-value" id="stat-clases">9</div>
+                    <div class="stat-sub">Cycling, Box, Aeróbicos</div>
+                </div>
+            </div>
+
+            <div class="two-col">
+                <div>
+                    <div class="section-header">
+                        <div class="section-title-sm">ÚLTIMOS PAGOS</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr>
+                                <th>Cliente</th><th>Plan</th><th>Monto</th><th>Estado</th>
+                            </tr></thead>
+                            <tbody id="tabla-pagos-recientes">
+                                <tr><td colspan="4"><div class="empty-state"><div class="empty-icon">💳</div><p>Cargando pagos...</p></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <div class="section-header">
+                        <div class="section-title-sm">ÚLTIMOS CLIENTES</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr>
+                                <th>Nombre</th><th>Email</th><th>Registro</th>
+                            </tr></thead>
+                            <tbody id="tabla-clientes-recientes">
+                                <tr><td colspan="3"><div class="empty-state"><div class="empty-icon">👥</div><p>Cargando...</p></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════ CLIENTES ══════════ -->
+        <div id="sec-clientes" class="section" style="display:none">
+            <div class="section-header">
+                <div class="section-title-sm">GESTIÓN DE CLIENTES</div>
+                <input class="search-input" placeholder="🔍  Buscar cliente..." oninput="filtrarClientes(this.value)">
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr>
+                        <th>Nombre</th><th>Email</th><th>Teléfono</th><th>Registro</th><th>Plan Activo</th><th>Estado</th>
+                    </tr></thead>
+                    <tbody id="tabla-clientes"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ══════════ PLANES ══════════ -->
+        <div id="sec-planes" class="section" style="display:none">
+            <div class="section-header">
+                <div class="section-title-sm">GESTIÓN DE PLANES</div>
+                <button class="btn-sm" onclick="abrirModalPlan()">+ Nuevo Plan</button>
+            </div>
+            <div class="three-col" id="planes-admin-grid"></div>
+        </div>
+
+        <!-- ══════════ PAGOS ══════════ -->
+        <div id="sec-pagos" class="section" style="display:none">
+            <div class="section-header">
+                <div class="section-title-sm">HISTORIAL DE PAGOS</div>
+            </div>
+
+            <!-- TABS INTERNAS -->
+            <div class="inner-tabs">
+                <button class="inner-tab active" onclick="switchPagoTab('membresias', this)">
+                    💳 Membresías
+                </button>
+                <button class="inner-tab" onclick="switchPagoTab('suplementos', this)">
+                    💊 Suplementos
+                </button>
+            </div>
+ 
+            <!-- MEMBRESÍAS -->
+            <div class="inner-panel active" id="tab-membresias">
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr>
+                            <th>Referencia</th>
+                            <th>Cliente</th>
+                            <th>Plan</th>
+                            <th>Monto</th>
+                            <th>Método</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr></thead>
+                        <tbody id="tabla-pagos"></tbody>
+                    </table>
+                </div>
+            </div>
+ 
+            <!-- SUPLEMENTOS -->
+            <div class="inner-panel" id="tab-suplementos">
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr>
+                            <th>Referencia</th>
+                            <th>Cliente</th>
+                            <th>Suplemento</th>
+                            <th>Cantidad</th>
+                            <th>Total</th>
+                            <th>Método</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr></thead>
+                        <tbody id="tabla-pedidos-sup"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════ CLASES ══════════ -->
+        <div id="sec-clases" class="section" style="display:none">
+            <div class="section-header">
+                <div class="section-title-sm">CLASES GRUPALES</div>
+                <button class="btn-sm" onclick="abrirModalClase()">+ Nueva Clase</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr>
+                        <th>Clase</th>
+                        <th>Día</th>
+                        <th>Hora Inicio</th>
+                        <th>Hora Fin</th>
+                        <th>Capacidad</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr></thead>
+                    <tbody id="tabla-clases"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ══════════ ENTRENADORES ══════════ -->
+        <div id="sec-entrenadores" class="section" style="display:none">
+            <div class="section-header">
+                <div class="section-title-sm">ENTRENADORES</div>
+                <button class="btn-sm" onclick="abrirModalEntrenador()">+ Agregar Entrenador</button>
+            </div>
+            <div id="entrenadores-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+        </div>
+
+        <!-- ══════════ SUPLEMENTOS ══════════ -->
+        <div id="sec-suplementos" class="section" style="display:none">
+            <div class="section-header">
+                <div class="section-title-sm">SUPLEMENTOS</div>
+                <button class="btn-sm" onclick="abrirModalSuplemento()">+ Agregar Suplemento</button>
+            </div>
+            <div id="suplementos-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ── MODAL PLAN ── -->
+<div class="modal-overlay" id="modal-plan">
+    <div class="modal">
+        <button class="modal-close" onclick="cerrarModal('modal-plan')">✕</button>
+        <div class="modal-title" id="modal-plan-title">NUEVO PLAN</div>
+        <div class="modal-sub">Completa la información del plan de membresía.</div>
+        <div class="form-group">
+            <label class="form-label">Nombre del plan</label>
+            <input type="text" class="form-input" id="plan-nombre" placeholder="Ej: Plan Gold">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Precio (COP)</label>
+            <input type="number" class="form-input" id="plan-precio" placeholder="99900">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Duración (días)</label>
+            <input type="number" class="form-input" id="plan-duracion" placeholder="30">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Descripción</label>
+            <textarea class="form-input" id="plan-desc" placeholder="Descripción corta del plan..."></textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Beneficios (separados por coma)</label>
+            <textarea class="form-input" id="plan-beneficios" placeholder="Acceso musculación, Clases grupales, ..."></textarea>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-sm" onclick="guardarPlan()">Guardar Plan</button>
+            <button class="btn-sm-outline" onclick="cerrarModal('modal-plan')">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CLASE -->
+<div class="modal-overlay" id="modal-clase">
+    <div class="modal">
+        <button class="modal-close" onclick="cerrarModal('modal-clase')">✕</button>
+        <div class="modal-title" id="modal-clase-title">NUEVA CLASE</div>
+        <div class="modal-sub">Agrega o edita una clase grupal y asigna un entrenador.</div>
+        <div class="form-group">
+            <label class="form-label">Tipo de clase</label>
+            <select class="form-input" id="clase-nombre">
+                <option value="Cycling">🚴 Cycling</option>
+                <option value="Box">🥊 Box</option>
+                <option value="Aeróbicos">💃 Aeróbicos</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Descripción</label>
+            <textarea class="form-input" id="clase-desc" placeholder="Descripción de la clase..."></textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Día de la semana</label>
+            <select class="form-input" id="clase-dia">
+                <option value="Lunes">Lunes</option>
+                <option value="Martes">Martes</option>
+                <option value="Miércoles">Miércoles</option>
+                <option value="Jueves">Jueves</option>
+                <option value="Viernes">Viernes</option>
+                <option value="Sábado">Sábado</option>
+                <option value="Domingo">Domingo</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Hora inicio</label>
+                <input type="time" class="form-input" id="clase-inicio" style="color-scheme:dark">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Hora fin</label>
+                <input type="time" class="form-input" id="clase-fin" style="color-scheme:dark">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Capacidad máxima</label>
+            <input type="number" class="form-input" id="clase-capacidad" placeholder="20">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Asignar entrenador</label>
+            <select class="form-input" id="clase-entrenador">
+                <option value="">— Sin entrenador asignado —</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-sm" onclick="guardarClase()">Guardar Clase</button>
+            <button class="btn-sm-outline" onclick="cerrarModal('modal-clase')">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL SUPLEMENTO -->
+<div class="modal-overlay" id="modal-suplemento">
+    <div class="modal">
+        <button class="modal-close" onclick="cerrarModal('modal-suplemento')">✕</button>
+        <div class="modal-title" id="modal-sup-title">NUEVO SUPLEMENTO</div>
+        <div class="modal-sub">Agrega o edita un producto del catálogo.</div>
+        <div class="form-group">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-input" id="sup-nombre" placeholder="Ej: Proteína Whey">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Descripción</label>
+            <textarea class="form-input" id="sup-desc" placeholder="Descripción del producto..."></textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Precio (COP)</label>
+            <input type="number" class="form-input" id="sup-precio" placeholder="89900">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Stock</label>
+            <input type="number" class="form-input" id="sup-stock" placeholder="50">
+        </div>
+        <div class="modal-actions">
+            <button class="btn-sm" onclick="guardarSuplemento()">Guardar</button>
+            <button class="btn-sm-outline" onclick="cerrarModal('modal-suplemento')">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL ENTRENADOR ── -->
+<div class="modal-overlay" id="modal-entrenador">
+    <div class="modal">
+        <button class="modal-close" onclick="cerrarModal('modal-entrenador')">✕</button>
+        <div class="modal-title">NUEVO ENTRENADOR</div>
+        <div class="modal-sub">Registra un nuevo entrenador en el sistema.</div>
+        <div class="form-group">
+            <label class="form-label">Nombre completo</label>
+            <input type="text" class="form-input" id="ent-nombre" placeholder="Nombre">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Apellido</label>
+            <input type="text" class="form-input" id="ent-apellido" placeholder="Apellido">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="ent-email" placeholder="entrenador@powergym.com">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Contraseña inicial</label>
+            <input type="password" class="form-input" id="ent-pass" placeholder="Mínimo 6 caracteres">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Especialidad</label>
+            <input type="text" class="form-input" id="ent-especialidad" placeholder="Ej: Fuerza y Musculación">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Descripción</label>
+            <textarea class="form-input" id="ent-desc" placeholder="Bio del entrenador..."></textarea>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-sm" onclick="guardarEntrenador()">Guardar</button>
+            <button class="btn-sm-outline" onclick="cerrarModal('modal-entrenador')">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="alert-toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:3000/api';
+let todosLosClientes = [];
+
+// ── INICIALIZACIÓN ──
+document.addEventListener('DOMContentLoaded', () => {
+    const u = JSON.parse(localStorage.getItem('usuario') || '{}');
+    if (!u || u.rol !== 'admin') { window.location.href = 'login.html'; return; }
+    document.getElementById('sidebar-name').textContent = u.nombre + ' ' + (u.apellido || '');
+    document.getElementById('sidebar-email').textContent = u.email;
+    document.getElementById('avatar-initials').textContent = u.nombre?.charAt(0).toUpperCase() || 'A';
+    document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('es-CO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    cargarDashboard();
+});
+
+// ── NAVEGACIÓN ──
+function showSection(sec) {
+    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.getElementById('sec-' + sec).style.display = 'block';
+    event.currentTarget.classList.add('active');
+    const titles = { dashboard:'Dashboard', clientes:'Clientes', planes:'Planes', pagos:'Pagos', clases:'Clases Grupales', entrenadores:'Entrenadores', suplementos:'Suplementos' };
+    document.getElementById('page-title').textContent = titles[sec] || sec;
+    if (sec === 'clientes') cargarClientes();
+    if (sec === 'planes') cargarPlanes();
+    if (sec === 'pagos') cargarPagos();
+    if (sec === 'clases') cargarClases();
+    if (sec === 'entrenadores') cargarEntrenadores();
+    if (sec === 'suplementos') cargarSuplementos();
+}
+
+// ── DASHBOARD ──
+async function cargarDashboard() {
+    try {
+        const res = await fetch(`${API}/clientes`);
+        const clientes = await res.json();
+
+        // Total clientes
+        document.getElementById('stat-clientes').textContent = clientes.length || 0;
+
+        // Membresías activas
+        const activas = clientes.filter(c => c.plan_activo).length;
+        document.getElementById('stat-membresias').textContent = activas;
+
+        // Tabla clientes recientes
+        const tbody = document.getElementById('tabla-clientes-recientes');
+        tbody.innerHTML = clientes.slice(0, 5).map(c => `
+            <tr>
+                <td class="td-name">${c.nombre} ${c.apellido}</td>
+                <td style="color:var(--text-muted);font-size:0.78rem">${c.email}</td>
+                <td style="color:var(--text-muted);font-size:0.78rem">
+                    ${new Date(c.fecha_registro).toLocaleDateString('es-CO')}
+                </td>
+            </tr>`).join('') || '<tr><td colspan="3"><div class="empty-state"><p>Sin clientes aún</p></div></td></tr>';
+
+    } catch {
+        document.getElementById('stat-clientes').textContent = '—';
+        document.getElementById('stat-membresias').textContent = '—';
+    }
+
+    // Cargar ingresos del mes
+    try {
+        const res = await fetch(`${API}/pagos/estadisticas`);
+        const stats = await res.json();
+        const ingresos = stats.ingresos_mes || 0;
+        document.getElementById('stat-ingresos').innerHTML =
+            `<span>$</span>${Number(ingresos).toLocaleString('es-CO')}`;
+
+        // Últimos pagos
+        const resPagos = await fetch(`${API}/pagos`);
+        const pagos = await resPagos.json();
+        const tbodyPagos = document.getElementById('tabla-pagos-recientes');
+        tbodyPagos.innerHTML = pagos.slice(0, 5).map(p => `
+            <tr>
+                <td class="td-name">${p.nombre} ${p.apellido}</td>
+                <td style="font-size:0.78rem">${p.plan_nombre}</td>
+                <td style="color:var(--accent);font-family:'Bebas Neue',sans-serif">
+                    $${Number(p.monto).toLocaleString('es-CO')}
+                </td>
+                <td>
+                    <span class="badge ${p.estado === 'completado' ? 'badge-active' : 'badge-pendiente'}">
+                        ${p.estado}
+                    </span>
+                </td>
+            </tr>`).join('') || '<tr><td colspan="4"><div class="empty-state"><p>Sin pagos aún</p></div></td></tr>';
+    } catch {
+        document.getElementById('stat-ingresos').innerHTML = '<span>$</span>0';
+    }
+}
+
+// ── CLIENTES ──
+async function cargarClientes() {
+    const tbody = document.getElementById('tabla-clientes');
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">⏳</div><p>Cargando...</p></div></td></tr>';
+    try {
+        const res = await fetch(`${API}/clientes`);
+        const data = await res.json();
+        todosLosClientes = data;
+        renderClientes(data);
+    } catch {
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><p>Error al cargar clientes</p></div></td></tr>';
+    }
+}
+function renderClientes(data) {
+    const tbody = document.getElementById('tabla-clientes');
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">👥</div><p>Sin clientes registrados</p></div></td></tr>';
+        return;
+    }
+    tbody.innerHTML = data.map(c => {
+        // Plan activo
+        const planBadge = c.plan_activo
+            ? `<span class="badge badge-active">${c.plan_activo}</span>`
+            : `<span class="badge badge-vencida">Sin plan</span>`;
+
+        // Fecha vencimiento
+        const vencimiento = c.fecha_vencimiento
+            ? `<div style="font-size:0.68rem;color:var(--text-muted);margin-top:3px">
+                Vence: ${new Date(c.fecha_vencimiento).toLocaleDateString('es-CO')}
+               </div>`
+            : '';
+
+        // Estado membresía
+        const estadoBadge = c.estado_membresia === 'activa'
+            ? `<span class="badge badge-active">Activo</span>`
+            : `<span class="badge badge-vencida">Sin membresía</span>`;
+
+        return `
+        <tr>
+            <td class="td-name">${c.nombre} ${c.apellido}</td>
+            <td style="color:var(--text-muted);font-size:0.8rem">${c.email}</td>
+            <td style="color:var(--text-muted);font-size:0.8rem">${c.telefono || '—'}</td>
+            <td style="color:var(--text-muted);font-size:0.78rem">
+                ${new Date(c.fecha_registro).toLocaleDateString('es-CO')}
+            </td>
+            <td>
+                ${planBadge}
+                ${vencimiento}
+            </td>
+            <td>${estadoBadge}</td>
+        </tr>`;
+    }).join('');
+}
+function filtrarClientes(q) {
+    const filtrados = todosLosClientes.filter(c =>
+        (c.nombre+' '+c.apellido+c.email).toLowerCase().includes(q.toLowerCase()));
+    renderClientes(filtrados);
+}
+
+// ── PLANES ──
+async function cargarPlanes() {
+    const grid = document.getElementById('planes-admin-grid');
+    grid.innerHTML = '<div style="color:var(--text-muted)">Cargando planes...</div>';
+    try {
+        const res = await fetch(`${API}/planes`);
+        const planes = await res.json();
+        const durs = ['1 Mes', '3 Meses', '6 Meses', '1 Año'];
+        grid.innerHTML = planes.map((p, i) => `
+            <div class="plan-admin-card">
+                <div class="plan-admin-name">${p.nombre}</div>
+                <div class="plan-admin-price">$${Number(p.precio).toLocaleString('es-CO')}</div>
+                <div class="plan-admin-dur">${durs[i] || p.duracion_dias + ' días'}</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);font-weight:300;line-height:1.6;margin-bottom:8px">
+                    ${p.descripcion || ''}
+                </div>
+                <div style="font-size:0.72rem;color:var(--text-muted);font-weight:300;line-height:1.8">
+                    ${(p.beneficios || '').split(',').map(b => `→ ${b.trim()}`).join('<br>')}
+                </div>
+                <div class="plan-admin-actions">
+                    <button class="action-btn" onclick='editarPlan(${JSON.stringify(p)})'>✏️ Editar</button>
+                    <button class="action-btn danger" onclick="eliminarPlan(${p.id}, '${p.nombre}')">🗑️ Eliminar</button>
+                </div>
+            </div>`).join('');
+    } catch {
+        grid.innerHTML = '<div style="color:var(--red)">Error al cargar planes</div>';
+    }
+}
+
+// ── PAGOS ──
+function switchPagoTab(tab, el) {
+    document.querySelectorAll('.inner-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.inner-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+    if (tab === 'membresias') cargarPagosMembresias();
+    if (tab === 'suplementos') cargarPagosSuplementos();
+}
+
+async function cargarPagos() {
+    cargarPagosMembresias();
+}
+
+async function cargarPagosMembresias() {
+    const tbody = document.getElementById('tabla-pagos');
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">⏳</div><p>Cargando...</p></div></td></tr>';
+    try {
+        const res = await fetch(`${API}/pagos`);
+        const pagos = await res.json();
+        if (!pagos.length) {
+            tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">💳</div><p>Sin pagos de membresías aún.</p></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = pagos.map(p => `
+            <tr>
+                <td style="font-size:0.75rem;color:var(--accent)">${p.referencia || '—'}</td>
+                <td class="td-name">${p.nombre} ${p.apellido}</td>
+                <td>${p.plan_nombre}</td>
+                <td style="color:var(--accent);font-family:'Bebas Neue',sans-serif;font-size:1.1rem">
+                    $${Number(p.monto).toLocaleString('es-CO')}
+                </td>
+                <td>${p.metodo_pago === 'PSE' ? '🏦 PSE' : '📲 Transferencia'}</td>
+                <td>
+                    <span class="badge ${p.estado === 'completado' ? 'badge-active' : 'badge-pendiente'}">
+                        ${p.estado}
+                    </span>
+                </td>
+                <td style="color:var(--text-muted);font-size:0.78rem">
+                    ${new Date(p.fecha_pago).toLocaleDateString('es-CO')}
+                </td>
+            </tr>`).join('');
+    } catch {
+        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>❌ Error al cargar pagos</p></div></td></tr>';
+    }
+}
+
+async function cargarPagosSuplementos() {
+    const tbody = document.getElementById('tabla-pedidos-sup');
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">⏳</div><p>Cargando...</p></div></td></tr>';
+    const supIcons = { 'Proteína Whey':'🥛', 'Creatina':'⚡', 'Pre-Entreno':'💥', 'BCAA':'💪', 'Multivitamínico':'🌿' };
+    try {
+        const res = await fetch(`${API}/suplementos/pedidos`);
+        const pedidos = await res.json();
+        if (!pedidos.length) {
+            tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">💊</div><p>Sin pedidos de suplementos aún.</p></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = pedidos.map(p => `
+            <tr>
+                <td style="font-size:0.75rem;color:var(--accent)">${p.referencia || '—'}</td>
+                <td class="td-name">${p.nombre} ${p.apellido}</td>
+                <td>${supIcons[p.suplemento_nombre] || '💊'} ${p.suplemento_nombre}</td>
+                <td style="text-align:center">${p.cantidad}</td>
+                <td style="color:var(--accent);font-family:'Bebas Neue',sans-serif;font-size:1.1rem">
+                    $${Number(p.total).toLocaleString('es-CO')}
+                </td>
+                <td>${p.metodo_pago === 'PSE' ? '🏦 PSE' : '📲 Transferencia'}</td>
+                <td>
+                    <span class="badge ${p.estado === 'completado' ? 'badge-active' : 'badge-pendiente'}">
+                        ${p.estado}
+                    </span>
+                </td>
+                <td style="color:var(--text-muted);font-size:0.78rem">
+                    ${new Date(p.fecha_pedido).toLocaleDateString('es-CO')}
+                </td>
+            </tr>`).join('');
+    } catch {
+        tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>❌ Error al cargar pedidos</p></div></td></tr>';
+    }
+}
+
+// ── CLASES ──
+let claseEditandoId = null;
+const claseIcons = { 'Cycling':'🚴', 'Box':'🥊', 'Aeróbicos':'💃' };
+
+async function cargarClases() {
+    const tbody = document.getElementById('tabla-clases');
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">⏳</div><p>Cargando...</p></div></td></tr>';
+    try {
+        const res = await fetch(`${API}/clases`);
+        const clases = await res.json();
+        if (!clases.length) {
+            tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🏋️</div><p>Sin clases registradas</p></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = clases.map(c => `
+            <tr>
+                <td class="td-name">${claseIcons[c.nombre] || '🏋️'} ${c.nombre}</td>
+                <td>${c.dia_semana}</td>
+                <td>${c.hora_inicio?.slice(0,5)}</td>
+                <td>${c.hora_fin?.slice(0,5)}</td>
+                <td>${c.capacidad_maxima} cupos</td>
+                <td>
+                    ${c.entrenador_nombre
+                        ? `<span class="badge badge-active">👤 ${c.entrenador_nombre}</span>`
+                        : `<span class="badge badge-vencida">Sin asignar</span>`}
+                </td>
+                <td style="display:flex;gap:8px">
+                    <button class="action-btn" onclick='editarClase(${JSON.stringify(c)})'>✏️ Editar</button>
+                    <button class="action-btn danger" onclick="eliminarClase(${c.id}, '${c.nombre}')">🗑️ Eliminar</button>
+                </td>
+            </tr>`).join('');
+    } catch {
+        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>❌ Error al cargar clases</p></div></td></tr>';
+    }
+}
+
+async function abrirModalClase() {
+    claseEditandoId = null;
+    document.getElementById('modal-clase-title').textContent = 'NUEVA CLASE';
+    document.getElementById('clase-nombre').value    = 'Cycling';
+    document.getElementById('clase-desc').value      = '';
+    document.getElementById('clase-dia').value       = 'Lunes';
+    document.getElementById('clase-inicio').value    = '';
+    document.getElementById('clase-fin').value       = '';
+    document.getElementById('clase-capacidad').value = '20';
+    await cargarEntrenadoresSelect();
+    document.getElementById('clase-entrenador').value = '';
+    document.getElementById('modal-clase').classList.add('open');
+}
+
+async function editarClase(c) {
+    claseEditandoId = c.id;
+    document.getElementById('modal-clase-title').textContent = 'EDITAR CLASE';
+    document.getElementById('clase-nombre').value    = c.nombre;
+    document.getElementById('clase-desc').value      = c.descripcion || '';
+    document.getElementById('clase-dia').value       = c.dia_semana;
+    document.getElementById('clase-inicio').value    = c.hora_inicio?.slice(0,5) || '';
+    document.getElementById('clase-fin').value       = c.hora_fin?.slice(0,5) || '';
+    document.getElementById('clase-capacidad').value = c.capacidad_maxima;
+    await cargarEntrenadoresSelect();
+    document.getElementById('clase-entrenador').value = c.entrenador_id || '';
+    document.getElementById('modal-clase').classList.add('open');
+}
+
+async function cargarEntrenadoresSelect() {
+    const select = document.getElementById('clase-entrenador');
+    try {
+        const res = await fetch(`${API}/entrenadores`);
+        const ents = await res.json();
+        select.innerHTML = '<option value="">— Sin entrenador asignado —</option>' +
+            ents.map(e => `<option value="${e.id}">${e.nombre} ${e.apellido} — ${e.especialidad || 'Sin especialidad'}</option>`).join('');
+    } catch {
+        select.innerHTML = '<option value="">Error al cargar entrenadores</option>';
+    }
+}
+
+async function guardarClase() {
+    const nombre           = document.getElementById('clase-nombre').value;
+    const descripcion      = document.getElementById('clase-desc').value.trim();
+    const dia_semana       = document.getElementById('clase-dia').value;
+    const hora_inicio      = document.getElementById('clase-inicio').value;
+    const hora_fin         = document.getElementById('clase-fin').value;
+    const capacidad_maxima = document.getElementById('clase-capacidad').value || 20;
+    const id_entrenador    = document.getElementById('clase-entrenador').value || null;
+
+    if (!hora_inicio || !hora_fin) {
+        showToast('❌ Ingresa la hora de inicio y fin');
+        return;
+    }
+
+    const body = { nombre, descripcion, dia_semana, hora_inicio, hora_fin, capacidad_maxima, id_entrenador };
+
+    try {
+        let res;
+        if (claseEditandoId) {
+            res = await fetch(`${API}/clases/${claseEditandoId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+        } else {
+            res = await fetch(`${API}/clases`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+        }
+        const data = await res.json();
+        if (res.ok) {
+            showToast(claseEditandoId ? '✅ Clase actualizada' : '✅ Clase creada');
+            claseEditandoId = null;
+            cerrarModal('modal-clase');
+            cargarClases();
+        } else {
+            showToast('❌ ' + (data.mensaje || 'Error al guardar'));
+        }
+    } catch {
+        showToast('❌ Error de conexión');
+    }
+}
+
+async function eliminarClase(id, nombre) {
+    if (!confirm(`¿Seguro que deseas eliminar la clase "${nombre}"?`)) return;
+    try {
+        const res = await fetch(`${API}/clases/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (res.ok) {
+            showToast('✅ Clase eliminada');
+            cargarClases();
+        } else {
+            showToast('❌ ' + data.mensaje);
+        }
+    } catch {
+        showToast('❌ Error de conexión');
+    }
+}
+
+// ── ENTRENADORES ──
+async function cargarEntrenadores() {
+    const list = document.getElementById('entrenadores-list');
+    try {
+        const res = await fetch(`${API}/entrenadores`);
+        const ents = await res.json();
+        if (!ents.length) {
+            list.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Sin entrenadores registrados. Agrega el primero.</p></div>';
+            return;
+        }
+        list.innerHTML = ents.map(e => `
+            <div class="entrenador-card">
+                <div class="entrenador-avatar">${(e.nombre||'E').charAt(0)}</div>
+                <div>
+                    <div class="entrenador-name">${e.nombre} ${e.apellido}</div>
+                    <div class="entrenador-spec">${e.especialidad || 'Sin especialidad'} · ${e.email}</div>
+                </div>
+                <div class="disponible-toggle">
+                    <span style="color:var(--text-muted)">${e.disponible ? 'Disponible' : 'No disponible'}</span>
+                    <div class="toggle-switch ${e.disponible ? 'on' : ''}" onclick="toggleDisponible(${e.id}, this)"></div>
+                </div>
+            </div>`).join('');
+    } catch {
+        list.innerHTML = '<div class="empty-state"><p>Error al cargar entrenadores</p></div>';
+    }
+}
+async function toggleDisponible(id, el) {
+    el.classList.toggle('on');
+    const disp = el.classList.contains('on') ? 1 : 0;
+    el.previousElementSibling.textContent = disp ? 'Disponible' : 'No disponible';
+    try {
+        await fetch(`${API}/entrenadores/disponibilidad/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ disponible: disp })
+        });
+        showToast('✅ Disponibilidad actualizada');
+    } catch { showToast('❌ Error al actualizar'); }
+}
+
+// ── SUPLEMENTOS ──
+let supEditandoId = null;
+const supIcons = {
+    'Proteína Whey': '🥛',
+    'Creatina': '⚡',
+    'Pre-Entreno': '💥',
+    'BCAA': '💪',
+    'Multivitamínico': '🌿'
+};
+
+async function cargarSuplementos() {
+    const list = document.getElementById('suplementos-list');
+    list.innerHTML = '<div style="color:var(--text-muted);padding:16px">Cargando...</div>';
+    try {
+        const res = await fetch(`${API}/suplementos`);
+        const sups = await res.json();
+
+        if (!sups.length) {
+            list.innerHTML = '<div class="empty-state"><div class="empty-icon">💊</div><p>Sin suplementos. Agrega el primero.</p></div>';
+            return;
+        }
+
+        list.innerHTML = sups.map(s => `
+            <div class="sup-card">
+                <div class="sup-icon">${supIcons[s.nombre] || '💊'}</div>
+                <div style="flex:1">
+                    <div class="sup-name">${s.nombre}</div>
+                    <div class="sup-stock">Stock: ${s.stock} unidades</div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;font-weight:300">
+                        ${s.descripcion || ''}
+                    </div>
+                    <div class="sup-price">$${Number(s.precio).toLocaleString('es-CO')}</div>
+                </div>
+                <div class="sup-actions">
+                    <button class="action-btn" onclick='editarSuplemento(${JSON.stringify(s)})'>✏️ Editar</button>
+                    <button class="action-btn danger" onclick="eliminarSuplemento(${s.id}, '${s.nombre}')">🗑️ Eliminar</button>
+                </div>
+            </div>`).join('');
+    } catch {
+        list.innerHTML = '<div class="empty-state"><p>❌ Error al cargar suplementos</p></div>';
+    }
+}
+
+function abrirModalSuplemento() {
+    supEditandoId = null;
+    document.getElementById('modal-sup-title').textContent = 'NUEVO SUPLEMENTO';
+    document.getElementById('sup-nombre').value  = '';
+    document.getElementById('sup-desc').value    = '';
+    document.getElementById('sup-precio').value  = '';
+    document.getElementById('sup-stock').value   = '';
+    document.getElementById('modal-suplemento').classList.add('open');
+}
+
+function editarSuplemento(s) {
+    supEditandoId = s.id;
+    document.getElementById('modal-sup-title').textContent = 'EDITAR SUPLEMENTO';
+    document.getElementById('sup-nombre').value  = s.nombre;
+    document.getElementById('sup-desc').value    = s.descripcion || '';
+    document.getElementById('sup-precio').value  = s.precio;
+    document.getElementById('sup-stock').value   = s.stock;
+    document.getElementById('modal-suplemento').classList.add('open');
+}
+
+async function guardarSuplemento() {
+    const nombre      = document.getElementById('sup-nombre').value.trim();
+    const descripcion = document.getElementById('sup-desc').value.trim();
+    const precio      = document.getElementById('sup-precio').value;
+    const stock       = document.getElementById('sup-stock').value;
+
+    if (!nombre || !precio || !stock) {
+        showToast('❌ Completa los campos obligatorios');
+        return;
+    }
+
+    const body = { nombre, descripcion, precio, stock };
+
+    try {
+        let res;
+        if (supEditandoId) {
+            res = await fetch(`${API}/suplementos/${supEditandoId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+        } else {
+            res = await fetch(`${API}/suplementos`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+        }
+
+        const data = await res.json();
+        if (res.ok) {
+            showToast(supEditandoId ? '✅ Suplemento actualizado' : '✅ Suplemento agregado');
+            supEditandoId = null;
+            cerrarModal('modal-suplemento');
+            cargarSuplementos();
+        } else {
+            showToast('❌ ' + (data.mensaje || 'Error al guardar'));
+        }
+    } catch {
+        showToast('❌ Error de conexión');
+    }
+}
+
+async function eliminarSuplemento(id, nombre) {
+    if (!confirm(`¿Seguro que deseas eliminar "${nombre}"?`)) return;
+    try {
+        const res = await fetch(`${API}/suplementos/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (res.ok) {
+            showToast('✅ Suplemento eliminado');
+            cargarSuplementos();
+        } else {
+            showToast('❌ ' + data.mensaje);
+        }
+    } catch {
+        showToast('❌ Error de conexión');
+    }
+}
+
+// ── MODALES ──
+function abrirModalPlan() { document.getElementById('modal-plan').classList.add('open'); }
+function abrirModalSuplemento() { document.getElementById('modal-suplemento').classList.add('open'); }
+function abrirModalEntrenador() { document.getElementById('modal-entrenador').classList.add('open'); }
+function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
+
+let planEditandoId = null;
+
+function editarPlan(p) {
+    planEditandoId = p.id;
+    document.getElementById('modal-plan-title').textContent = 'EDITAR PLAN';
+    document.getElementById('plan-nombre').value    = p.nombre;
+    document.getElementById('plan-precio').value    = p.precio;
+    document.getElementById('plan-duracion').value  = p.duracion_dias;
+    document.getElementById('plan-desc').value      = p.descripcion || '';
+    document.getElementById('plan-beneficios').value = p.beneficios || '';
+    abrirModalPlan();
+}
+
+function abrirModalPlan() {
+    if (!planEditandoId) {
+        document.getElementById('modal-plan-title').textContent = 'NUEVO PLAN';
+        document.getElementById('plan-nombre').value    = '';
+        document.getElementById('plan-precio').value    = '';
+        document.getElementById('plan-duracion').value  = '';
+        document.getElementById('plan-desc').value      = '';
+        document.getElementById('plan-beneficios').value = '';
+    }
+    document.getElementById('modal-plan').classList.add('open');
+}
+
+async function guardarPlan() {
+    const nombre       = document.getElementById('plan-nombre').value.trim();
+    const precio       = document.getElementById('plan-precio').value;
+    const duracion     = document.getElementById('plan-duracion').value;
+    const descripcion  = document.getElementById('plan-desc').value.trim();
+    const beneficios   = document.getElementById('plan-beneficios').value.trim();
+
+    if (!nombre || !precio || !duracion) {
+        showToast('❌ Completa los campos obligatorios');
+        return;
+    }
+
+    const body = { nombre, precio, duracion_dias: duracion, descripcion, beneficios };
+
+    try {
+        let res;
+        if (planEditandoId) {
+            // Editar plan existente
+            res = await fetch(`${API}/planes/${planEditandoId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+        } else {
+            // Crear nuevo plan
+            res = await fetch(`${API}/planes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+        }
+
+        const data = await res.json();
+        if (res.ok) {
+            showToast(planEditandoId ? '✅ Plan actualizado correctamente' : '✅ Plan creado correctamente');
+            planEditandoId = null;
+            cerrarModal('modal-plan');
+            cargarPlanes();
+        } else {
+            showToast('❌ ' + (data.mensaje || 'Error al guardar plan'));
+        }
+    } catch {
+        showToast('❌ Error de conexión');
+    }
+}
+
+async function eliminarPlan(id, nombre) {
+    if (!confirm(`¿Seguro que deseas eliminar el plan "${nombre}"?`)) return;
+    try {
+        const res = await fetch(`${API}/planes/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (res.ok) {
+            showToast('✅ Plan eliminado correctamente');
+            cargarPlanes();
+        } else {
+            showToast('❌ ' + data.mensaje);
+        }
+    } catch {
+        showToast('❌ Error de conexión');
+    }
+}
+
+async function guardarSuplemento() {
+    const nombre = document.getElementById('sup-nombre').value.trim();
+    const desc = document.getElementById('sup-desc').value.trim();
+    const precio = document.getElementById('sup-precio').value;
+    const stock = document.getElementById('sup-stock').value;
+    if (!nombre || !precio || !stock) { showToast('❌ Completa todos los campos'); return; }
+    try {
+        const res = await fetch(`${API}/suplementos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, descripcion: desc, precio, stock })
+        });
+        if (res.ok) { showToast('✅ Suplemento agregado'); cerrarModal('modal-suplemento'); cargarSuplementos(); }
+        else showToast('❌ Error al guardar');
+    } catch { showToast('❌ Error de conexión'); }
+}
+
+async function guardarEntrenador() {
+    const nombre = document.getElementById('ent-nombre').value.trim();
+    const apellido = document.getElementById('ent-apellido').value.trim();
+    const email = document.getElementById('ent-email').value.trim();
+    const pass = document.getElementById('ent-pass').value;
+    const especialidad = document.getElementById('ent-especialidad').value.trim();
+    if (!nombre || !email || !pass) { showToast('❌ Completa los campos requeridos'); return; }
+    try {
+        const res = await fetch(`${API}/auth/registro`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, apellido, email, contrasena: pass, id_rol: 3 })
+        });
+        if (res.ok) { showToast('✅ Entrenador registrado'); cerrarModal('modal-entrenador'); cargarEntrenadores(); }
+        else showToast('❌ Error al guardar entrenador');
+    } catch { showToast('❌ Error de conexión'); }
+}
+
+// ── TOAST ──
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── LOGOUT ──
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+    window.location.href = 'login.html';
+}
+
+// Cerrar modal al hacer clic fuera
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+        if (e.target === overlay) overlay.classList.remove('open');
+    });
+});
+</script>
+</body>
+</html>
